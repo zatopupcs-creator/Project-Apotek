@@ -196,6 +196,17 @@ const ApotekData = (() => {
    if(kind==='settings')db.settings=record;else if(idx<0)rows.push(record);else rows[idx]=record;
    });
   }
+  async function remove(kind,id,rev){
+   if(config())return rpc('remove',{p_kind:kind,p_id:id,p_rev:rev});
+   return changeLocal(db=>{
+    if(kind!=='products')throw Error('Data tidak dapat dihapus.');
+    if(!can(localMe(db),'stok'))throw Error('Akses ditolak.');
+    const idx=db.products.findIndex(x=>x.id===id);
+    if(idx<0)throw Error('Produk tidak ditemukan. Muat ulang lalu coba lagi.');
+    if((db.products[idx].rev||0)!==rev)throw Error('Data telah berubah. Muat ulang lalu coba lagi.');
+    db.products.splice(idx,1);
+   });
+  }
   async function checkout(id,cart,discount,paid,method){
    if(config())return rpc('checkout',{p_id:id,p_items:cart,p_discount:discount,p_paid:paid,p_method:method});
    return changeLocal(db=>{
@@ -209,5 +220,5 @@ const ApotekData = (() => {
    const sale={id,number:db.sales.length+1,at:new Date().toISOString(),cashier:cashier.name,business:snapshotBusiness(db),items,subtotal,cost,discount,total,paid,change:paid-total,method};db.sales.unshift(sale);return restoreLogo(sale,db.receiptLogos);
    });
   }
-return { menus, categories, uuid, config, session, logout, disconnect, parseConfig, testConfig, connect, login, branding, setPassword, needsOwner, setupDemoOwner, state, save, checkout };
+return { menus, categories, uuid, config, session, logout, disconnect, parseConfig, testConfig, connect, login, branding, setPassword, needsOwner, setupDemoOwner, state, save, remove, checkout };
 })();
