@@ -22,6 +22,13 @@
   function resetDraft(){cart={};discount=0;orderId=db.uuid();pending=false;saveDraft()}
   function cartLines(){return Object.entries(cart).map(([id,qty])=>({p:product(id),qty})).filter(x=>x.p&&x.qty>0)}
   function totals(){let lines=cartLines(),sub=lines.reduce((n,{p,qty})=>n+p.price*qty,0),qty=lines.reduce((n,x)=>n+x.qty,0);return {sub,qty,total:Math.max(0,sub-discount),lines}}
+  function skeleton(){
+   const bar=(cls)=>'<i class="sk '+cls+'"></i>';
+   const head='<div class="pagehead"><div>'+bar('sk-title')+bar('sk-sub')+'</div></div>';
+   const status='<span class="sr" role="status">Memuat data…</span>';
+   if(page==='kasir')return status+head+'<div class="pos"><section class="catalog">'+bar('sk-search')+'<div class="sk-chips">'+bar('sk-chip')+bar('sk-chip')+bar('sk-chip')+bar('sk-chip')+'</div><div class="products">'+Array.from({length:6},()=>'<div class="card"><i class="sk sk-photo"></i><div class="cardbody">'+bar('sk-line w60')+bar('sk-line w80')+bar('sk-line w40')+'</div></div>').join('')+'</div></section><aside class="cartpanel sk-cart">'+bar('sk-line w60')+bar('sk-block')+bar('sk-line w80')+bar('sk-line w80')+bar('sk-btn')+'</aside></div>';
+   return status+head+'<section class="panel">'+bar('sk-search')+Array.from({length:6},()=>'<div class="sk-row">'+bar('sk-thumb')+'<div class="sk-grow">'+bar('sk-line w40')+bar('sk-line w20')+'</div>'+bar('sk-line w15')+bar('sk-line w15')+'</div>').join('')+'</section>';
+  }
   async function refresh(){
    const id=++refreshId;
    if(!db.session()){
@@ -31,6 +38,7 @@
     return;
    }
    try{
+    if(!data)$('#main').innerHTML=skeleton();
     const fresh=await db.state();if(id!==refreshId)return;
     data=fresh;brand={name:data.settings.name,logo:data.settings.logo||''};authError='';loadDraft();
     draftLogo=brand.logo;
