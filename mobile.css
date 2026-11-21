@@ -1,0 +1,45 @@
+/* Tata letak mobile: kartu tidak melebihi layar, tabel berubah jadi kartu */
+.stack{grid-template-columns:minmax(0,1fr)}
+.stack>*,.split>*,.panel,.stats>*{min-width:0}
+@media(max-width:720px){
+ html,body{overflow-x:hidden}
+ main{padding-left:16px;padding-right:16px}
+ .pagehead{gap:12px;align-items:flex-start;margin-bottom:16px}
+ .pagehead>div:first-child{flex:1 1 0;min-width:0}
+ .pagehead>.btn,.pagehead>.date{flex-shrink:0}
+ .pagehead h1{font-size:1.75rem}
+ .panel{padding:16px;border-radius:16px}
+ .panelhead{flex-wrap:wrap;gap:10px;margin-bottom:14px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .stat{padding:14px;border-radius:14px}
+ .stat span{font-size:.78rem}
+ .stat b{display:block;font-size:1.1rem;line-height:1.3;overflow-wrap:anywhere}
+ .reportfilters{display:block}
+ .reportfilters .fieldbox,.reportfilters .selbtn{width:100%;min-width:0}
+ .rangebtn{padding-left:12px;padding-right:12px;gap:8px}
+ .rangebtn>span{font-size:.78rem;letter-spacing:-.01em}
+ .barrow{grid-template-columns:58px minmax(0,1fr) auto;gap:8px;font-size:.8rem}
+ .settingsnav{gap:6px}
+ .settingsnav .btn{flex:1 1 auto;padding:10px}
+ .actions{justify-content:stretch}
+ .actions .btn{flex:1 1 auto}
+ .toolsrow{gap:8px}
+ dialog{width:94vw}
+ .modalbody{padding:16px}
+
+ /* tabel menjadi kartu */
+ .tablewrap{overflow:visible}
+ .tablewrap table{display:block;width:100%;white-space:normal}
+ .tablewrap thead{display:none}
+ .tablewrap tbody{display:grid;gap:12px}
+ .tablewrap tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 14px;position:relative;padding:14px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 3px #18253908}
+ .tablewrap td{display:block;min-width:0;padding:0;border:0;font-size:.9rem;white-space:normal;overflow-wrap:anywhere;text-align:left!important}
+ .tablewrap td:first-child{grid-column:1/-1;padding-right:46px;font-weight:650}
+ .tablewrap td[data-label]:not([data-label=""]):not(:first-child)::before{content:attr(data-label);display:block;margin-bottom:3px;font-size:.72rem;font-weight:600;color:var(--muted)}
+ .tablewrap td[data-label=""]{position:absolute;top:10px;right:10px}
+ .tablewrap td[data-label=""] .btn{padding:7px 10px;font-size:.8rem}
+ .tablewrap td>.btn[data-a="contact"]{padding:6px 10px;font-size:.84rem;border-radius:8px;justify-content:flex-start;text-align:left}
+ .tablewrap .tableproduct{align-items:center}
+ .tablewrap .tableproduct b{display:block;line-height:1.3}
+ .tablewrap .tableproduct small{margin-top:2px}
+}
