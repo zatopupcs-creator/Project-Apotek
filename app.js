@@ -115,6 +115,7 @@
   });
   document.addEventListener('click',async e=>{
    const button=e.target.closest('[data-a]');if(!button||button.disabled||busy)return;const a=button.dataset.a,id=button.dataset.id;
+   if(['confirmdelete','test','retry'].includes(a))button.classList.add('loading');
    try{switch(a){
    case 'togglemenu':toggleMenu();break;case 'closemenu':closeMenu();break;case 'togglegroup':button.closest('.snav-group').classList.toggle('collapsed');button.setAttribute('aria-expanded',String(!button.closest('.snav-group').classList.contains('collapsed')));break;
    case 'setup-owner':if(!data&&db.needsOwner())modal('Siapkan akun pemilik demo',ownerForm());break;
@@ -140,10 +141,10 @@
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
    case 'logout':await signOut();break;
    case 'disconnect':if(owner()){db.disconnect();brand={name:'Bee Farma',logo:''};await signOut()}break;
-   }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;if(a==='test')button.disabled=false}
+   }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;button.classList.remove('loading');if(a==='test')button.disabled=false}
   });
   document.addEventListener('submit',async e=>{
-   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;busy=true;if(submit)submit.disabled=true;let error=form.querySelector('.error');if(error)error.textContent='';
+   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
    try{
    if(b==='filterform'){sort=v.sort;available=fd.has('available');close();render();return}
    if(b==='discountform'){discount=Number(v.discount);close();updateCart();return}
@@ -176,7 +177,7 @@
    }else await db.save(kind,editing?.id||db.uuid(),editing?.rev||0,v);
    close()}
    await refresh();feedback('Perubahan disimpan.');
-   }catch(ex){err(ex,form)}finally{busy=false;if(submit)submit.disabled=false}
+   }catch(ex){err(ex,form)}finally{busy=false;if(submit){submit.disabled=false;submit.classList.remove('loading')}}
   });
   document.addEventListener('input',e=>{let t=e.target;if(t.id==='catalogsearch'){query=t.value;$('#cataloglist').innerHTML=catalogList()}
    if(t.id==='mgsearch'){mg.search=t.value;$('#mgrows').innerHTML=managementRows(page==='pengaturan'?'pegawai':page,data)}
