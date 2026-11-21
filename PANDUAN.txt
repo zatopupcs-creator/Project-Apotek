@@ -19,15 +19,11 @@ Gunakan proyek Supabase yang sama ketika memperbarui website lama.
 1. Buka SQL Editor. Salin seluruh isi database.sql dan jalankan. Skrip ini memperbarui skema dan mempertahankan data stok, transaksi, serta profil lama.
 2. Buka Edge Functions, buat fungsi melalui editor dengan nama persis apotek-akses. Jika sudah ada, buka editornya. Salin seluruh isi supabase/functions/apotek-akses/index.ts ke index.ts pada editor. Klik Deploy.
 3. Buka pengaturan fungsi apotek-akses. Nonaktifkan "Verify JWT with legacy secret" untuk fungsi ini. Formulir login menghubungi fungsi sebelum pengguna mempunyai sesi. Operasi pembuatan dan pengubahan kata sandi memeriksa sesi serta status pemilik pada server.
-4. Untuk proyek baru, buat pengguna pemilik melalui Authentication > Users, tetapkan email dan kata sandi, lalu konfirmasikan email. Untuk pembaruan, gunakan email dan kata sandi akun pemilik yang sudah ada.
-5. Di SQL Editor, jalankan perintah berikut secara terpisah. Ganti nilai contoh dengan identitas pemilik Anda.
-
-select figiha.setup_owner('email-pemilik@contoh.id', 'pemilik', 'AP-001', 'Nama Pemilik');
-
+4. Setelah itu jalankan seluruh isi data-awal.sql di SQL Editor. Skrip ini membuat akun pemilik (login Bee Farma / admin123), identitas apotek, suplier, dan produk awal.
+5. Semua transaksi kasir otomatis tersimpan di tabel figiha.sales dan tampil di menu Riwayat.
 6. Hubungkan website: isi Project URL dan publishable/anon key sekali di file supabase-config.js (berlaku untuk semua perangkat, tidak tampil di halaman depan). Alternatif: masuk sebagai pemilik lalu buka Pengaturan > Koneksi Supabase.
-   Untuk akun bawaan: buat pengguna Auth beefarma@pegawai.apotek.invalid dengan kata sandi admin123 (email dikonfirmasi), lalu jalankan select figiha.setup_owner('beefarma@pegawai.apotek.invalid','beefarma','BF-001','Bee Farma');
-7. Masuk menggunakan username atau ID dari langkah 5 dan kata sandi akun pemilik Supabase. Setiap browser kasir perlu dikonfigurasi satu kali. Akun pegawai dan transaksi menggunakan database yang sama.
-8. Jika koneksi lama masih tersimpan di browser, langsung masuk setelah menyelesaikan langkah 1–5.
+7. Masuk menggunakan username atau ID dari langkah 4 dan kata sandi admin123. Setiap browser kasir perlu dikonfigurasi satu kali. Akun pegawai dan transaksi menggunakan database yang sama.
+8. Jika koneksi lama masih tersimpan di browser, langsung masuk setelah menyelesaikan langkah 1–4.
 
 Nama dan logo apotek ditampilkan pada layar masuk. Simpan kredensial server hanya di Supabase. Kolom kunci pada website hanya menerima kunci publik.
 

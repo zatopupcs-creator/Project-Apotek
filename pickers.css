@@ -9,8 +9,7 @@
 .selbtn.open>svg:last-child:not(.cal){transform:rotate(180deg)}
 .datebtn>svg{transform:none!important}
 .datebtn .ph{color:#89909a;font-weight:400}
-.selmenu{position:fixed;z-index:100;background:#fff;border:1px solid #e3e7f0;border-radius:20px;box-shadow:0 14px 44px #1b263d2e;padding:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#c9cfdb transparent}
-.selmenu::-webkit-scrollbar{width:6px}.selmenu::-webkit-scrollbar-thumb{background:#c9cfdb;border-radius:6px}
+.selmenu{position:fixed;z-index:100;background:#fff;border:1px solid #e3e7f0;border-radius:20px;box-shadow:0 14px 44px #1b263d2e;padding:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .selopt{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:14px;font-size:.95rem;color:#2a3140;cursor:pointer;user-select:none}
 .selopt.act{background:var(--pick-soft)}
 .selopt.sel{font-weight:700;color:#10151f}
@@ -74,3 +73,13 @@ dialog.datepick::backdrop{background:#17212e66}
 .exportopt small{display:block;margin-top:3px;color:var(--muted);font-size:.84rem;line-height:1.4}
 .exporticon{width:46px;height:46px;border-radius:14px;background:var(--pick-soft);color:var(--pick);display:grid;place-items:center;flex-shrink:0}
 @media print{.selmenu,.datepick{display:none!important}}
+
+/* Layar pendek: kalender dipadatkan agar jarang perlu menggulir */
+@media(max-height:860px){
+ .dp-main{padding:14px 20px 16px}.dp-nav{margin-bottom:6px}.dp-arrow{width:40px;height:40px}
+ .dp-week span{padding:4px 0 6px}.dp-day{height:38px;font-size:.98rem}.dp-grid{row-gap:3px}
+ .dp-times{margin-top:12px}.dp-times .control{min-height:44px}
+ .dp-summary{margin-top:12px;padding:12px 16px}.dp-note{margin-top:8px}.dp-actions{margin-top:12px}
+ .dp-preset{padding:10px 18px}
+}
+@media(max-height:700px){.dp-day{height:33px;font-size:.92rem}.dp-preset{padding:8px 16px}}

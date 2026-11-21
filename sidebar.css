@@ -10,7 +10,7 @@ body.has-side #header{display:none}
 .snav-brand{display:flex;align-items:center;gap:12px;padding:4px 8px 18px;font-weight:800;font-size:1.22rem;letter-spacing:-.03em;text-transform:uppercase}
 .snav-brand img{width:46px;height:46px;border-radius:14px;object-fit:contain;background:#fff;flex-shrink:0}
 .snav-brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.snav-scroll{flex:1;min-height:0;overflow:auto;padding:0 2px;scrollbar-width:thin}
+.snav-scroll{flex:1;min-height:0;overflow:auto;padding:0 2px}
 .snav-label{display:flex;width:100%;align-items:center;justify-content:space-between;padding:10px 12px;font-size:.74rem;font-weight:700;letter-spacing:.09em;color:#6d7686}
 .snav-label svg{transition:transform .2s}
 .snav-group.collapsed .snav-label svg{transform:rotate(-90deg)}
