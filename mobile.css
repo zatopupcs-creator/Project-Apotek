@@ -62,6 +62,6 @@
 .signin-mark{color:#c8612f;display:grid;place-items:center}
 @media(max-width:640px){.signin-photo.has-logo{padding:18px}.signin-photo img.signin-logo{max-height:100px;max-width:60%}}
 
-.signin-card{grid-template-columns:1fr!important;max-width:460px!important;min-height:0!important}
+.signin-card{grid-template-columns:1fr!important;max-width:520px!important;min-height:0!important}
 .signin-form{padding:clamp(28px,5vw,44px)!important}
-.signin-form h1{text-align:center}
+.signin-form h1{text-align:center;font-size:clamp(1.3rem,5.2vw,1.95rem)!important;white-space:nowrap}
