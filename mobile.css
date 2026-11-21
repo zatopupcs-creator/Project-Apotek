@@ -76,3 +76,12 @@
 .pwtoggle.on .eye-hide{display:grid}
 .pwtoggle.on .eye-show{display:none}
 .pwtoggle span{display:grid}
+.rowactions{display:inline-flex;align-items:center;gap:4px}
+.iconbtn[data-a="deleteproduct"]:hover{color:#a63820;background:#fbeeea}
+@media(min-width:721px){
+ .tablewrap{overflow-x:hidden}
+ .tablewrap table{white-space:normal;width:100%}
+ .tablewrap td,.tablewrap th{overflow-wrap:anywhere;padding-left:8px;padding-right:8px}
+ .tablewrap td .btn{white-space:normal;text-align:left}
+ .tablewrap td:has(.rowactions){width:1%;white-space:nowrap}
+}
