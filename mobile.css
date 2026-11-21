@@ -85,3 +85,23 @@
  .tablewrap td .btn{white-space:normal;text-align:left}
  .tablewrap td:has(.rowactions){width:1%;white-space:nowrap}
 }
+.sk{display:block;background:linear-gradient(90deg,#e8ebf0 25%,#f3f5f8 40%,#e8ebf0 60%);background-size:300% 100%;animation:skshimmer 1.4s ease-in-out infinite;border-radius:8px}
+@keyframes skshimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.sk-title{width:min(240px,60%);height:34px;margin-bottom:10px}
+.sk-sub{width:min(360px,80%);height:14px}
+.sk-search{width:100%;height:45px;border-radius:9px}
+.sk-chips{display:flex;gap:8px;margin:15px 0 22px}
+.sk-chip{width:78px;height:36px}
+.sk-photo{width:100%;aspect-ratio:1.81;border-radius:0}
+.sk-line{height:13px;margin:10px 0}
+.sk-line.w15{width:15%}.sk-line.w20{width:20%}.sk-line.w40{width:40%}.sk-line.w60{width:60%}.sk-line.w80{width:80%}
+.sk-cart{padding:19px;display:grid;gap:8px;align-content:start}
+.sk-block{height:120px}
+.sk-btn{height:46px;margin-top:10px}
+.sk-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid #eceef1}
+.sk-row:last-child{border-bottom:0}
+.sk-search+.sk-row{margin-top:18px}
+.sk-thumb{width:56px;height:56px;flex-shrink:0}
+.sk-grow{flex:1;min-width:0}
+.sk-grow .sk-line{margin:6px 0}
+@media(prefers-reduced-motion:reduce){.sk{animation:none}}
