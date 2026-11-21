@@ -11,7 +11,7 @@
   const allowed=m=>Boolean(data&&Object.hasOwn(db.menus,m)&&(owner()||m!=='pegawai'&&data.me.menus.includes(m)));
   const product=id=>data.products.find(p=>p.id===id);
   const asForm=form=>Object.fromEntries(new FormData(form));
-  const feedback=msg=>{let t=$('#toast');t.textContent=msg;clearTimeout(timer);timer=setTimeout(()=>t.textContent='',3300)};
+  const feedback=(msg,kind='ok')=>{const t=$('#toast');t.className=kind==='error'?'error':'';t.innerHTML=icon(kind==='error'?'close':'check',24)+'<span>'+h(msg)+'</span>';clearTimeout(timer);timer=setTimeout(()=>{t.className='';t.innerHTML=''},3300)};
   function modal(title,body){dlg.innerHTML='<div class="modalhead"><h2>'+h(title)+'</h2>'+ib('close','Tutup','close')+'</div><div class="modalbody">'+body+'</div>';if(!dlg.open)dlg.showModal()}
   function close(){if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
   function loadDraft(){
@@ -71,7 +71,7 @@
   }
   const mobileCart=()=>totals().qty?btn('jumpcart','Keranjang · '+rp(totals().total),'bag','primary floatcart'):'';
   function updateCart(){saveDraft();$('#cart').innerHTML=cartView();$('#mobilecart').innerHTML=mobileCart()}
-  function changeQty(id,mode){const p=product(id);if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.');return}let n=mode==='remove'?0:(cart[id]||0)+(mode==='add'?1:-1);if(n>p.stock){feedback('Jumlah melebihi stok yang tersedia.');return}if(n<=0)delete cart[id];else cart[id]=n;discount=Math.min(discount,totals().sub);updateCart()}
+  function changeQty(id,mode){const p=product(id);if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.','error');return}let n=mode==='remove'?0:(cart[id]||0)+(mode==='add'?1:-1);if(n>p.stock){feedback('Jumlah melebihi stok yang tersedia.','error');return}if(n<=0)delete cart[id];else cart[id]=n;discount=Math.min(discount,totals().sub);updateCart()}
   function payment(){const {sub,total,qty}=totals();if(!qty)return;
    if(pending){const prev=JSON.parse(sessionStorage.getItem(cartKey+'.payment')||'null');if(prev){modal('Periksa pembayaran','<p class="note">Pembayaran sebelumnya belum terkonfirmasi. Tekan periksa untuk mengambil struk atau menyelesaikan transaksi dengan nomor yang sama.</p>'+btn('retry','Periksa transaksi','receipt','primary')+'<p class="error"></p>');return}}
    modal('Pembayaran','<form id="paymentform">'+line('Jumlah produk',qty+' item')+line('Subtotal',rp(sub))+line('Diskon',rp(discount))+'<div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><div class="formgrid">'+field('Metode pembayaran','method','Tunai',{items:['Tunai','QRIS','Debit','Transfer'],wide:true})+field('Uang diterima (Rp)','paid',total,{type:'number',required:true,min:total,wide:true,extra:'step="1"'})+'</div><div class="sectiongap" id="change">'+line('Kembalian',rp(0))+'</div>'+formEnd('Selesaikan pembayaran')+'</form>');
@@ -99,7 +99,7 @@
    try{const s=await db.checkout(payload.id,payload.items,payload.discount,payload.paid,payload.method);resetDraft();sessionStorage.removeItem(cartKey+'.payment');await refresh();showReceipt(s)}
    catch(e){if(!/jaringan|fetch|network|timeout|502|503|504/i.test(e.message)){pending=false;saveDraft();sessionStorage.removeItem(cartKey+'.payment')}throw e}
   }
-  function err(e,form){let el=form?.querySelector('.error')||(dlg.open?dlg.querySelector('.error'):null);if(el)el.textContent=e.message;else feedback(e.message)}
+  function err(e,form){let el=form?.querySelector('.error')||(dlg.open?dlg.querySelector('.error'):null);if(el)el.textContent=e.message;else feedback(e.message,'error')}
   document.addEventListener('click',e=>{
    const t=e.target.closest('.pwtoggle');if(!t)return;
    const input=t.parentElement.querySelector('input'),show=input.type==='password';
@@ -160,7 +160,7 @@
      try{await db.setPassword(employeeDraftId,password)}
      catch(e){await refresh();editing=data?.staff.find(s=>s.id===employeeDraftId);
       if(editing)modal('Selesaikan aktivasi akun',passwordForm(editing,'Profil sudah tersimpan. '+e.message));
-      else feedback(e.message);return;
+      else feedback(e.message,'error');return;
      }
     }
    }else await db.save(kind,editing?.id||db.uuid(),editing?.rev||0,v);
