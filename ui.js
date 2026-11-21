@@ -8,7 +8,13 @@ const ApotekUI = (() => {
   const ib=(action,label,ico,id='',cls='iconbtn')=>'<button type="button" title="'+h(label)+'" aria-label="'+h(label)+'" data-a="'+h(action)+'" data-id="'+h(id)+'" class="'+cls+'">'+icon(ico,17)+'</button>';
   const field=(label,name,value='',options={})=>{let {type='text',wide=false,required=false,items,textarea=false,min,placeholder='',extra=''}=options;
    const attrs=' name="'+h(name)+'" class="control" '+(required?'required ':'')+(min!=null?'min="'+h(min)+'" ':'')+extra;
-   const control=items?'<select'+attrs+'>'+items.map(x=>{let [v,l]=Array.isArray(x)?x:[x,x];return '<option value="'+h(v)+'" '+(String(v)===String(value)?'selected':'')+'>'+h(l)+'</option>'}).join('')+'</select>':textarea?'<textarea rows="3"'+attrs+'>'+h(value)+'</textarea>':'<input type="'+type+'" value="'+h(value)+'" placeholder="'+h(placeholder)+'"'+attrs+'>';
+   let control;
+   if(items){
+    const opts=items.map(x=>Array.isArray(x)?[String(x[0]),String(x[1])]:[String(x),String(x)]),cur=opts.find(([v])=>v===String(value))||opts[0];
+    control='<div class="selectbox"><input type="hidden" name="'+h(name)+'" value="'+h(cur[0])+'" data-options="'+h(JSON.stringify(opts))+'"><button type="button" class="control selbtn" aria-haspopup="listbox" aria-expanded="false"><span>'+h(cur[1])+'</span>'+icon('down',16)+'</button></div>';
+   }else if(type==='date'){
+    control='<div class="selectbox"><input type="hidden" name="'+h(name)+'" value="'+h(value)+'"><button type="button" class="control selbtn datebtn" data-dp="single" aria-haspopup="dialog"><span class="'+(value?'':'ph')+'">'+h(value?ApotekDates.label(value):(placeholder||'Pilih tanggal'))+'</span>'+icon('calendar',17)+'</button></div>';
+   }else control=textarea?'<textarea rows="3"'+attrs+'>'+h(value)+'</textarea>':'<input type="'+type+'" value="'+h(value)+'" placeholder="'+h(placeholder)+'"'+attrs+'>';
    return '<label class="field '+(wide?'wide':'')+'">'+h(label)+control+'</label>';};
   const head=(title,desc,action='')=>'<div class="pagehead"><div><h1>'+h(title)+'</h1><p>'+h(desc)+'</p></div>'+action+'</div>';
   const empty=(title,desc='')=>'<div class="empty">'+icon('box',28)+'<strong>'+h(title)+'</strong>'+h(desc)+'</div>';

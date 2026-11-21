@@ -3,7 +3,7 @@ const ApotekManagement = (() => {
   const {categories,menus} = ApotekData;
   const atDate=s=>new Date(new Date(s).getTime()+7*3600000).toISOString();
   const today=()=>atDate(Date.now()).slice(0,10);
-  const mg={search:'',period:'hari',day:today(),month:today().slice(0,7),year:today().slice(0,4)};
+  const mg={search:'',period:'hari',preset:'bulan',...ApotekDates.presetRange('bulan')};
   const find=(array,id)=>array.find(x=>x.id===id);
   const matches=(...values)=>values.join(' ').toLowerCase().includes(mg.search.toLowerCase());
   const pic=p=>'<span class="thumb">'+photo(p)+'</span>';
@@ -29,7 +29,7 @@ const ApotekManagement = (() => {
      '<span class="status '+(status==='Aktif'?'':'demo')+'">'+status+'</span>',ib('employee','Edit akun '+s.name,'edit',s.id));
    });
    }else{
-   headers=['No. struk','Waktu (WIB)','Kasir','Item','Metode','Total',''];rows=d.sales.filter(s=>matches(nomor(s),s.cashier,s.items.map(i=>i.name).join(' '))).map(s=>row('<b>'+h(nomor(s))+'</b>',date(s.at,{dateStyle:'medium',timeStyle:'short'}),h(s.cashier),s.items.reduce((n,i)=>n+i.qty,0),h(s.method),rp(s.total),btn('receipt','Struk','receipt','',s.id)));
+   headers=['No. struk','Waktu','Kasir','Item','Metode','Total',''];rows=d.sales.filter(s=>matches(nomor(s),s.cashier,s.items.map(i=>i.name).join(' '))).map(s=>row('<b>'+h(nomor(s))+'</b>',date(s.at,{dateStyle:'medium',timeStyle:'short'}),h(s.cashier),s.items.reduce((n,i)=>n+i.qty,0),h(s.method),rp(s.total),btn('receipt','Struk','receipt','',s.id)));
    }
    return rows.length?table(headers,rows):empty(mg.search?'Tidak ada hasil pencarian':'Belum ada data',page==='riwayat'?'Transaksi yang selesai akan muncul di sini.':'');
   }
@@ -58,7 +58,12 @@ const ApotekManagement = (() => {
    let phone=dial(s.phone),wa=dial(s.wa||s.phone).replace(/^0/,'62').replace(/^\+/,'');
    return line('Kontak',s.contact||'—')+line('Telepon',s.phone||'—')+line('WhatsApp',s.wa||'—')+line('Email',s.email||'—')+line('Alamat',s.address||'—')+'<div class="tools sectiongap">'+(phone?'<a class="btn" href="tel:'+phone+'">'+icon('phone')+' Telepon</a>':'')+(wa?'<a class="btn" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">'+icon('chat')+' WhatsApp</a>':'')+'</div>'+(!wa&&!phone?'<p class="note">Isi nomor telepon atau WhatsApp di detail suplier untuk menghubungi.</p>':'')+'<h3>Produk yang dipasok</h3>'+ (products.filter(p=>p.supplier===s.id).map(p=>line(p.name,p.stock+' '+p.unit.toLowerCase())).join('')||'<p class="note">Belum ada produk dari suplier ini.</p>');
   }
-  function filtered(d){const {period,day,month,year}=mg;let prefix=period==='jam'?day:period==='hari'?month:period==='bulan'?year:'';return d.sales.filter(s=>atDate(s.at).startsWith(prefix))}
+  function filtered(d){
+   if(mg.preset==='semua'||!mg.from||!mg.to)return d.sales;
+   const a=ApotekDates.ms(mg.from,false),b=ApotekDates.ms(mg.to,true);
+   return d.sales.filter(s=>{const t=new Date(s.at).getTime();return t>=a&&t<=b});
+  }
+  const rangeText=()=>mg.preset==='semua'||!mg.from?'Semua tanggal':ApotekDates.label(mg.from)+' → '+ApotekDates.label(mg.to);
   function aggregate(sales){let a={total:0,cost:0,discount:0,qty:0,sub:0},products=new Map(),groups=new Map(),methods=new Map();
    for(const s of sales){a.total+=s.total;a.cost+=s.cost;a.discount+=s.discount;a.sub+=s.subtotal;methods.set(s.method,(methods.get(s.method)||0)+s.total);
    const key=atDate(s.at).slice(0,({jam:13,hari:10,bulan:7,tahun:4}[mg.period]));groups.set(key,(groups.get(key)||0)+s.total);
@@ -67,15 +72,33 @@ const ApotekManagement = (() => {
   }
   function reports(d){
    let sales=filtered(d),{a,products,groups,methods}=aggregate(sales);
-   const period=mg.period,select=field('Kelompokkan','period',period,{items:[['jam','Per jam'],['hari','Per hari'],['bulan','Per bulan'],['tahun','Per tahun']]}),range=period==='tahun'?'':field({jam:'Tanggal',hari:'Bulan',bulan:'Tahun'}[period],'range',mg[{jam:'day',hari:'month',bulan:'year'}[period]],{type:{jam:'date',hari:'month',bulan:'number'}[period],extra:period==='bulan'?'min="2000" max="9999"':''});
-   const max=Math.max(1,...groups.values());let bars=[...groups].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>'<div class="barrow"><span>'+h(period==='jam'?k.slice(-2)+'.00 WIB':k)+'</span><div class="track"><i style="width:'+v/max*100+'%"></i></div><b>'+rp(v)+'</b></div>').join('');
+   const period=mg.period,select=field('Kelompokkan','period',period,{items:[['jam','Per jam'],['hari','Per hari'],['bulan','Per bulan'],['tahun','Per tahun']]});
+   const first=d.sales.reduce((n,x)=>Math.min(n,new Date(x.at).getTime()),Infinity),since=Number.isFinite(first)?ApotekDates.wall(first).slice(0,10):'';
+   const rangeBtn='<div class="fieldbox"><span>Rentang waktu</span><button type="button" class="control selbtn rangebtn" data-dp="range" data-since="'+h(since)+'" aria-haspopup="dialog">'+icon('calendar',17)+'<span>'+h(rangeText())+'</span>'+icon('down',16)+'</button></div>';
+   const max=Math.max(1,...groups.values());const oneDay=new Set([...groups.keys()].map(k=>k.slice(0,10))).size<2;let bars=[...groups].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>'<div class="barrow"><span>'+h(period==='jam'?(oneDay?'':k.slice(8,10)+'/'+k.slice(5,7)+' ')+k.slice(11,13)+'.00':k)+'</span><div class="track"><i style="width:'+v/max*100+'%"></i></div><b>'+rp(v)+'</b></div>').join('');
    const stats=[['Penjualan bersih',rp(a.total)],['Laba kotor',rp(a.total-a.cost)],['Transaksi',sales.length],['Produk terjual',a.qty]];
-   return head('Laporan penjualan','Pantau omzet, harga pokok, dan keuntungan apotek.',btn('export','Ekspor CSV','download'))+'<div class="stack"><div class="panel tools">'+select+range+'<span class="small">Zona waktu WIB</span></div><div class="stats">'+stats.map(([l,v])=>'<div class="stat"><span>'+l+'</span><b>'+v+'</b></div>').join('')+'</div><div class="panel"><h2>Penjualan per '+period+'</h2>'+(bars?'<div class="rangebars">'+bars+'</div>':empty('Belum ada penjualan pada periode ini'))+'</div><div class="split"><div class="panel"><div class="panelhead"><h2>Rincian penjualan</h2></div>'+line('Penjualan sebelum diskon',rp(a.sub))+line('Diskon',rp(a.discount))+line('Harga pokok penjualan',rp(a.cost))+line('Laba kotor',rp(a.total-a.cost))+line('Margin kotor',a.total?((a.total-a.cost)/a.total*100).toFixed(1)+'%':'—')+'</div><div class="panel"><div class="panelhead"><h2>Metode pembayaran</h2></div>'+([...methods].map(([m,v])=>line(m,rp(v))).join('')||'<span class="small">Belum ada pembayaran.</span>')+'</div></div><div class="panel"><div class="panelhead"><h2>Produk terlaris</h2></div>'+(products.size?table(['Produk','Jumlah terjual','Penjualan sebelum diskon'],[...products.values()].sort((a,b)=>b.qty-a.qty).map(p=>row(h(p.name),p.qty,rp(p.sub)))):empty('Belum ada produk terjual'))+'</div></div>';
+   return head('Laporan penjualan','Pantau omzet, harga pokok, dan keuntungan apotek.',btn('export','Ekspor','download'))+'<div class="stack"><div class="panel reportfilters">'+select+rangeBtn+'</div><div class="stats">'+stats.map(([l,v])=>'<div class="stat"><span>'+l+'</span><b>'+v+'</b></div>').join('')+'</div><div class="panel"><h2>Penjualan per '+period+'</h2>'+(bars?'<div class="rangebars">'+bars+'</div>':empty('Belum ada penjualan pada periode ini'))+'</div><div class="split"><div class="panel"><div class="panelhead"><h2>Rincian penjualan</h2></div>'+line('Penjualan sebelum diskon',rp(a.sub))+line('Diskon',rp(a.discount))+line('Harga pokok penjualan',rp(a.cost))+line('Laba kotor',rp(a.total-a.cost))+line('Margin kotor',a.total?((a.total-a.cost)/a.total*100).toFixed(1)+'%':'—')+'</div><div class="panel"><div class="panelhead"><h2>Metode pembayaran</h2></div>'+([...methods].map(([m,v])=>line(m,rp(v))).join('')||'<span class="small">Belum ada pembayaran.</span>')+'</div></div><div class="panel"><div class="panelhead"><h2>Produk terlaris</h2></div>'+(products.size?table(['Produk','Jumlah terjual','Penjualan sebelum diskon'],[...products.values()].sort((a,b)=>b.qty-a.qty).map(p=>row(h(p.name),p.qty,rp(p.sub)))):empty('Belum ada produk terjual'))+'</div></div>';
+  }
+  function download(blob,name){
+   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }
+  function exportChooser(){
+   const opt=(a,ico,t,sub)=>'<button type="button" class="exportopt" data-a="'+a+'"><span class="exporticon">'+icon(ico,22)+'</span><span><b>'+t+'</b><small>'+sub+'</small></span></button>';
+   return '<p class="note">Periode: <b>'+h(rangeText())+'</b></p><div class="exportopts">'+opt('export-pdf','receipt','PDF','Laporan siap cetak dengan ringkasan dan rincian transaksi')+opt('export-csv','download','CSV','Data mentah untuk dibuka di Excel atau Google Sheets')+'</div>';
   }
   function exportCsv(d){
    const cells=v=>'"'+String(v??'').replace(/^[=+@-]/,m=>"'"+m).replace(/"/g,'""')+'"';
-   const rows=[['No. struk','Waktu WIB','Kasir','Metode','Unit','Penjualan kotor','Diskon','Penjualan bersih','Harga pokok','Laba kotor'],...filtered(d).map(s=>[nomor(s),date(s.at,{dateStyle:'short',timeStyle:'medium'}),s.cashier,s.method,s.items.reduce((n,i)=>n+i.qty,0),s.subtotal,s.discount,s.total,s.cost,s.total-s.cost])];
-   const url=URL.createObjectURL(new Blob(['\uFEFF'+rows.map(r=>r.map(cells).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}));let a=document.createElement('a');a.href=url;a.download='laporan-penjualan-'+today()+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);
+   const rows=[['No. struk','Waktu','Kasir','Metode','Unit','Penjualan kotor','Diskon','Penjualan bersih','Harga pokok','Laba kotor'],...filtered(d).map(s=>[nomor(s),date(s.at,{dateStyle:'short',timeStyle:'medium'}),s.cashier,s.method,s.items.reduce((n,i)=>n+i.qty,0),s.subtotal,s.discount,s.total,s.cost,s.total-s.cost])];
+   download(new Blob(['\uFEFF'+rows.map(r=>r.map(cells).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'}),'laporan-penjualan-'+today()+'.csv');
   }
-return { today, mg, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv };
+  function exportPdf(d){
+   const sales=filtered(d),{a,products,methods}=aggregate(sales);
+   const model={brand:d.settings.name||'Apotek',period:rangeText(),printed:ApotekDates.label(ApotekDates.nowWall()),
+    stats:[['Penjualan bersih',rp(a.total)],['Laba kotor',rp(a.total-a.cost)],['Transaksi',String(sales.length)],['Produk terjual',String(a.qty)],['Penjualan sebelum diskon',rp(a.sub)],['Diskon',rp(a.discount)],['Harga pokok',rp(a.cost)],['Margin kotor',a.total?((a.total-a.cost)/a.total*100).toFixed(1)+'%':'-']],
+    methods:[...methods].map(([m,v])=>[m,rp(v)]),
+    top:[...products.values()].sort((x,y)=>y.qty-x.qty).slice(0,10).map(p=>[p.name,String(p.qty),rp(p.sub)]),
+    rows:sales.map(s=>[nomor(s),date(s.at,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),s.cashier,s.method,String(s.items.reduce((n,i)=>n+i.qty,0)),rp(s.total),rp(s.total-s.cost)])};
+   download(ApotekPdf.report(model),'laporan-penjualan-'+today()+'.pdf');
+  }
+return { today, mg, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv, exportPdf, exportChooser };
 })();

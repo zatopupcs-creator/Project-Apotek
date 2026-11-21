@@ -1,7 +1,7 @@
 (() => {
   const db = ApotekData;
   const {h,rp,date,nomor,head,btn,ib,field,icon,line,ticket,photo,search,empty,formEnd} = ApotekUI;
-  const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,mg} = ApotekManagement;
+  const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,exportPdf,exportChooser,mg} = ApotekManagement;
   const {connectionView,loginView,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
   const {renderNavigation,selectMenu,toggleMenu,closeMenu} = ApotekNavigation;
   const $=s=>document.querySelector(s),dlg=$('#dialog');
@@ -119,7 +119,7 @@
    case 'receipt':showReceipt(data.sales.find(s=>s.id===id));break;case 'print':busy=true;await doPrint();break;
    case 'product':case 'supplier':case 'employee':edit(a,id);break;
    case 'contact':{let s=data.suppliers.find(s=>s.id===id);modal(s.name,contact(s,data.products)+(allowed('suplier')?'<div class="actions">'+btn('supplier','Edit suplier','edit','',s.id)+'</div>':''));break}
-   case 'export':exportCsv(data);break;case 'tab':settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';render();break;case 'opensettings':close();nav('pengaturan');break;
+   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':exportCsv(data);close();break;case 'export-pdf':exportPdf(data);close();break;case 'tab':settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';render();break;case 'opensettings':close();nav('pengaturan');break;
    case 'connection':if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'logout':await signOut();break;
@@ -173,8 +173,9 @@
      draftLogo=next;updateLogoTile(next);$('#receipt-preview').innerHTML=receiptPreview(receiptValues(form,next));form.querySelector('.error').textContent='';
     }}catch(error){t.value='';err(error,form)}finally{if(logoTask===task)logoTask=null}return;
    }
-   if(t.name==='period'){mg.period=t.value;render()}if(t.name==='range'&&t.value){mg[{jam:'day',hari:'month',bulan:'year'}[mg.period]]=t.value;render()}
+   if(t.name==='period'){mg.period=t.value;render()}
    if(t.name==='method'){let paid=t.form.elements.paid;paid.value=totals().total;paid.readOnly=t.value!=='Tunai';$('#change').innerHTML=line('Kembalian',rp(0))}});
+  document.addEventListener('dp-range',e=>{Object.assign(mg,e.detail);if(data&&page==='laporan')render()});
   window.addEventListener('hashchange',()=>{let m=location.hash.slice(1);if(allowed(m)){page=m;render()}});
   window.addEventListener('storage',e=>{
    if(e.key==='figiha.supabase'){db.logout();cartKey='';authError='';refresh();return}

@@ -6,14 +6,10 @@ const ApotekSettings = (() => {
   function connectionView(){
    const c=db.config();
    return '<form id="configform"><div class="panelhead"><h2>Koneksi Supabase</h2><span class="status '+(c?'':'demo')+'">'+(c?'Supabase':'Mode demo')+'</span></div>'+
-    '<p class="note">Masukkan koneksi proyek yang digunakan apotek di perangkat ini.</p><div class="formgrid">'+
+    '<div class="formgrid">'+
     field('Project URL','url',c?.url,{type:'url',required:true,wide:true,placeholder:'https://nama-proyek.supabase.co'})+
     field('Publishable key / anon key','key',c?.key,{required:true,wide:true,placeholder:'sb_publishable_…',extra:'autocomplete="off"'})+
-    '</div><details class="sectiongap"><summary>Penyiapan pertama di dasbor Supabase</summary><ol class="setupsteps">'+
-    '<li>Jalankan <a href="database.sql" download>database.sql</a> melalui SQL Editor.</li>'+
-    '<li>Di Edge Functions, buat <code>apotek-akses</code>. Salin <a href="supabase/functions/apotek-akses/index.ts" download>isi index.ts</a> ke editor dan deploy. Matikan <strong>Verify JWT with legacy secret</strong> untuk fungsi ini agar halaman masuk dapat menghubunginya.</li>'+
-    '<li>Buat akun pemilik dengan email terkonfirmasi di Authentication → Users. Jalankan perintah <code>figiha.setup_owner</code> pada akhir file SQL dengan email, username, ID, dan nama pemilik.</li>'+
-    '<li>Uji dan simpan koneksi, lalu masuk memakai username atau ID tersebut dan kata sandi akun pemilik.</li></ol></details>'+
+    '</div>'+
     '<p class="error" role="alert"></p><div class="actions">'+(c?btn('disconnect','Kembali ke demo'):'')+btn('test','Uji koneksi','database')+'<button class="btn primary">Simpan koneksi</button></div></form>';
   }
   function loginView(error,name=''){
