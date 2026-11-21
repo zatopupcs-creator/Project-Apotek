@@ -17,7 +17,7 @@ const ApotekManagement = (() => {
   function managementRows(page,d){
    let headers,rows;
    if(page==='stok'){
-   headers=['Produk','Kategori','Stok','Harga beli','Harga jual','Suplier',''];rows=d.products.filter(p=>matches(p.name,p.sku,p.category)).map(p=>{let s=find(d.suppliers,p.supplier);return row(item(p),h(p.category),'<b class="'+(p.stock<=p.minimum?'lowtext':'')+'">'+h(p.stock)+'</b>',rp(p.cost),rp(p.price),s?btn('contact',s.name,'phone','',s.id):'—',ib('product','Edit stok '+p.name,'edit',p.id))});
+   headers=['Produk','Kategori','Stok','Harga beli','Harga jual','Suplier',''];rows=d.products.filter(p=>matches(p.name,p.sku,p.category)).map(p=>{let s=find(d.suppliers,p.supplier);return row(item(p),h(p.category),'<b class="'+(p.stock<=p.minimum?'lowtext':'')+'">'+h(p.stock)+'</b>',rp(p.cost),rp(p.price),s?btn('contact',s.name,'phone','',s.id):'—','<div class="rowactions">'+ib('product','Edit stok '+p.name,'edit',p.id)+ib('deleteproduct','Hapus '+p.name,'trash',p.id)+'</div>')});
    }else if(page==='suplier'){
    headers=['Suplier','Kontak','Telepon','Produk dipasok',''];rows=d.suppliers.filter(s=>matches(s.name,s.contact)).map(s=>row('<button class="linkbtn" data-a="contact" data-id="'+h(s.id)+'">'+h(s.name)+'</button>',h(s.contact||'—'),h(s.phone||'—'),String(d.products.filter(p=>p.supplier===s.id).length),ib('supplier','Edit suplier','edit',s.id)));
    }else if(page==='pegawai'){
