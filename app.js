@@ -1,6 +1,6 @@
 (() => {
   const db = ApotekData;
-  const {h,rp,date,nomor,head,btn,ib,field,icon,line,ticket,photo,search,empty,formEnd} = ApotekUI;
+  const {h,rp,date,nomor,head,btn,ib,field,icon,line,ticket,photo,search,empty,formEnd,logoUrl} = ApotekUI;
   const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,exportPdf,exportChooser,mg} = ApotekManagement;
   const {connectionView,loginView,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
   const {renderNavigation,selectMenu,toggleMenu,closeMenu} = ApotekNavigation;
@@ -72,10 +72,10 @@
   function catalogList(){
    let q=query.toLowerCase().trim(),products=data.products.filter(p=>(category==='Semua'||category===p.category)&&(!available||p.stock>0)&&[p.name,p.sku,p.detail].join(' ').toLowerCase().includes(q));
    if(sort==='low')products.sort((a,b)=>a.price-b.price);if(sort==='high')products.sort((a,b)=>b.price-a.price);if(sort==='name')products.sort((a,b)=>a.name.localeCompare(b.name,'id'));
-   return '<div class="sectionline"><h2>Katalog produk</h2><span>'+products.length+' produk</span></div><div class="products">'+(products.map(p=>'<article class="card"><button class="photo" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambah '+h(p.name)+'" '+(!p.stock?'disabled':'')+'>'+photo(p)+'<span class="stocktag '+(p.stock===0?'zero':p.stock<=p.minimum?'low':'')+'">Stok '+p.stock+'</span></button><div class="cardbody"><span class="tag">'+h(p.category)+'</span><h3>'+h(p.name)+'</h3><span class="productdesc">'+h(p.detail||p.sku)+'</span><div class="cardbottom"><div><span class="price">'+rp(p.price)+'</span> <span class="unit">/ '+h(p.unit.toLowerCase())+'</span></div><button class="square" type="button" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambahkan '+h(p.name)+' ke keranjang" '+(!p.stock?'disabled':'')+'>'+icon('plus',17)+'</button></div></div></article>').join('')||empty('Produk tidak ditemukan',data.products.length?'Coba kata kunci atau kategori lain.':'Tambahkan produk melalui menu Stok.'))+'</div>';
+   return '<div class="sectionline"><h2>Katalog produk</h2><span>'+products.length+' produk</span></div><div class="products">'+(products.map(p=>'<article class="card"><button class="photo" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambah '+h(p.name)+'" '+(!p.stock?'disabled':'')+'>'+photo(p)+'</button><div class="cardbody"><span class="tag">'+h(p.category)+'</span><h3>'+h(p.name)+'</h3><span class="productdesc">'+h(p.detail||p.sku)+'</span><div class="cardbottom"><div><span class="price">'+rp(p.price)+'</span> <span class="unit">/ '+h(p.unit.toLowerCase())+'</span></div><div class="addcol"><span class="stocktag '+(p.stock===0?'zero':p.stock<=p.minimum?'low':'')+'" data-sid="'+h(p.id)+'">Stok <span class="stocknum">'+p.stock+'</span></span><button class="square" type="button" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambahkan '+h(p.name)+' ke keranjang" '+(!p.stock?'disabled':'')+'>'+icon('plus',17)+'</button></div></div></div></article>').join('')||empty('Produk tidak ditemukan',data.products.length?'Coba kata kunci atau kategori lain.':'Tambahkan produk melalui menu Stok.'))+'</div>';
   }
   function cartView(){const {qty,sub,total,lines}=totals();
-   return '<div class="boxhead"><div class="boxname"><span class="boxicon">'+icon('bag',19)+'</span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<span>'+qty+'</span>'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button></div>';
+   return '<div class="boxhead"><div class="boxname"><span class="boxicon logo"><img alt="" src="'+h(logoUrl(brand.logo)||'icon.svg')+'"></span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<span>'+qty+'</span>'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button></div>';
   }
   const mobileCart=()=>totals().qty?btn('jumpcart','Keranjang · '+rp(totals().total),'bag','primary floatcart'):'';
   function updateCart(){saveDraft();$('#cart').innerHTML=cartView();$('#mobilecart').innerHTML=mobileCart()}
@@ -115,9 +115,22 @@
   async function readPhoto(file){if(!file?.size)return editing?.image||'';if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12*1024*1024)throw Error('Pilih JPG, PNG, atau WebP maksimal 12 MB.');
    const bitmap=await createImageBitmap(file),scale=Math.min(1,640/Math.max(bitmap.width,bitmap.height));let canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));let ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();return canvas.toDataURL('image/jpeg',.82);
   }
+  function stockFx(before){
+   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+   document.querySelectorAll('[data-sid]').forEach(el=>{
+    const num=el.querySelector('.stocknum'),from=before[el.dataset.sid],to=Number(num.textContent);
+    if(from===undefined||from<=to||reduce)return;
+    const badge=document.createElement('span');badge.className='stockminus';badge.textContent='−'+(from-to);el.append(badge);setTimeout(()=>badge.remove(),1300);
+    el.classList.add('dec');num.textContent=from;
+    const start=performance.now(),dur=Math.min(1100,450+(from-to)*60);
+    const step=t=>{const k=Math.min(1,(t-start)/dur);num.textContent=Math.round(from-(from-to)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step);else{num.textContent=to;setTimeout(()=>el.classList.remove('dec'),350)}};
+    requestAnimationFrame(step);
+   });
+  }
   async function finishPayment(payload){
    pending=true;sessionStorage.setItem(cartKey+'.payment',JSON.stringify(payload));saveDraft();
-   try{const s=await db.checkout(payload.id,payload.items,payload.discount,payload.paid,payload.method);resetDraft();sessionStorage.removeItem(cartKey+'.payment');await refresh();showReceipt(s)}
+   const before=Object.fromEntries((data?.products||[]).map(p=>[p.id,p.stock]));
+   try{const s=await db.checkout(payload.id,payload.items,payload.discount,payload.paid,payload.method);resetDraft();sessionStorage.removeItem(cartKey+'.payment');await refresh();stockFx(before);showReceipt(s)}
    catch(e){if(!/jaringan|fetch|network|timeout|502|503|504/i.test(e.message)){pending=false;saveDraft();sessionStorage.removeItem(cartKey+'.payment')}throw e}
   }
   function err(e,form){let el=form?.querySelector('.error')||(dlg.open?dlg.querySelector('.error'):null);if(el)el.textContent=e.message;else feedback(e.message,'error')}
@@ -140,7 +153,7 @@
    case 'account':selectMenu();account();break;case 'close':close();break;
    case 'category':category=id;render();break;case 'add':case 'minus':{const before=totals().qty;changeQty(id,a);if(a==='add'&&button.closest('.card')&&totals().qty>before)cartFx(button);break}
    case 'remove':{const p=product(id);if(pending||!p){changeQty(id,a);break}modal('Hapus dari keranjang','<p class="note">Hapus <b>'+h(p.name)+'</b> dari keranjang?</p><div class="actions">'+btn('close','Batal')+btn('confirmremove','Hapus','trash','dark',id)+'</div>');break}
-   case 'confirmremove':changeQty(id,'remove');close();break;
+   case 'confirmremove':changeQty(id,'remove');close();if(!cart[id])feedback('Produk dihapus dari keranjang.');break;
    case 'jumpcart':$('#cart').scrollIntoView({behavior:'smooth'});break;
    case 'filter':modal('Filter produk','<form id="filterform"><div class="stack">'+field('Urutkan produk','sort',sort,{items:[['default','Urutan katalog'],['name','Nama A–Z'],['low','Harga terendah'],['high','Harga tertinggi']]})+'<label class="checkline"><input type="checkbox" name="available" '+(available?'checked':'')+'>Hanya produk dengan stok tersedia</label></div>'+formEnd('Terapkan filter')+'</form>');break;
    case 'discount':if(!pending)modal('Diskon transaksi','<form id="discountform">'+field('Potongan harga (Rp)','discount',discount,{type:'number',required:true,min:0,extra:'step="1" max="'+totals().sub+'"'})+formEnd('Terapkan diskon')+'</form>');break;
