@@ -1,4 +1,4 @@
--- Apotek Figiha | PostgreSQL / Supabase. Aman dijalankan kembali.
+-- Bee Farma | PostgreSQL / Supabase. Aman dijalankan kembali.
 begin;
 create schema if not exists figiha;
 revoke all on schema figiha from public, anon, authenticated;
@@ -70,7 +70,7 @@ alter table figiha.receipt_logos enable row level security;
 alter table figiha.staff enable row level security;
 alter table figiha.records enable row level security;
 alter table figiha.sales enable row level security;
-insert into figiha.records values ('settings','00000000-0000-0000-0000-000000000001','{"name":"Apotek Figiha","address":"","phone":"","footer":"Terima kasih atas kunjungan Anda.","width":"80"}',1) on conflict do nothing;
+insert into figiha.records values ('settings','00000000-0000-0000-0000-000000000001','{"name":"Bee Farma","address":"","phone":"","footer":"Terima kasih atas kunjungan Anda.","width":"80"}',1) on conflict do nothing;
 create or replace function figiha.me() returns figiha.staff language plpgsql stable security definer set search_path='' as $$
 declare s figiha.staff;
 begin
@@ -215,4 +215,6 @@ notify pgrst, 'reload schema';
 commit;
 -- Jalankan perintah berikut secara terpisah setelah mengganti email dengan email Auth pemilik yang terkonfirmasi.
 -- select figiha.setup_owner('email-pemilik@contoh.id','pemilik','AP-001','Pemilik');
+-- Akun bawaan Bee Farma (login: Bee Farma / admin123): buat pengguna Auth beefarma@pegawai.apotek.invalid dengan kata sandi admin123 (email dikonfirmasi), lalu jalankan:
+-- select figiha.setup_owner('beefarma@pegawai.apotek.invalid','beefarma','BF-001','Bee Farma');
 

@@ -16,15 +16,14 @@ const ApotekSettings = (() => {
     '<li>Uji dan simpan koneksi, lalu masuk memakai username atau ID tersebut dan kata sandi akun pemilik.</li></ol></details>'+
     '<p class="error" role="alert"></p><div class="actions">'+(c?btn('disconnect','Kembali ke demo'):'')+btn('test','Uji koneksi','database')+'<button class="btn primary">Simpan koneksi</button></div></form>';
   }
-  function loginView(error){
-   const demo=!db.config();
+  function loginView(error,name=''){
+   const shop=String(name||'').trim().replace(/^apotek\s+/i,'');
    return '<div class="login-stage"><section class="signin-card"><div class="signin-photo" aria-hidden="true"><img src="assets/apotek-interior.jpg" alt=""></div>'+
-    '<div class="signin-form"><h1>Masuk ke apotek</h1><p>Gunakan username atau ID pegawai yang telah didaftarkan pemilik.</p>'+
+    '<div class="signin-form"><h1>'+h(shop?'Masuk ke apotek '+shop:'Masuk ke apotek')+'</h1><p>Gunakan username atau ID pegawai yang telah didaftarkan pemilik.</p>'+
     '<form id="loginform"><div class="stack">'+
-    field('Username atau ID pegawai','identifier','',{required:true,placeholder:'Masukkan username atau ID',extra:'autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="32"'})+
+    field('Username atau ID pegawai','identifier','',{required:true,placeholder:'Masukkan username atau ID',extra:'autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"'})+
     field('Kata sandi','password','',{type:'password',required:true,placeholder:'Masukkan kata sandi',extra:'autocomplete="current-password"'})+
     '</div><p class="error" role="alert">'+h(error)+'</p><button class="btn dark full login-submit">Masuk</button></form>'+
-    (demo?'<div class="login-setup">'+(db.needsOwner()?'<button class="linkbtn" data-a="setup-owner">Siapkan akun pemilik demo</button>':'')+'<button class="quietlink" data-a="connection">'+icon('database',15)+' Atur koneksi Supabase</button></div>':'<div class="login-setup"><a class="quietlink" href="PANDUAN.txt" target="_blank" rel="noopener">Panduan masuk dan koneksi</a></div>')+
     '</div></section></div>';
   }
   function ownerForm(){

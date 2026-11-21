@@ -6,7 +6,7 @@
   const {renderNavigation,selectMenu,toggleMenu,closeMenu} = ApotekNavigation;
   const $=s=>document.querySelector(s),dlg=$('#dialog');
   let data,page=location.hash.slice(1)||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
-  let brand={name:'Apotek Figiha',logo:''},draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
+  let brand={name:'Bee Farma',logo:''},draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
   const owner=()=>Boolean(data?.me?.owner);
   const allowed=m=>Boolean(data&&Object.hasOwn(db.menus,m)&&(owner()||m!=='pegawai'&&data.me.menus.includes(m)));
   const product=id=>data.products.find(p=>p.id===id);
@@ -26,7 +26,7 @@
    const id=++refreshId;
    if(!db.session()){
     data=null;currentSale=null;$('#print').innerHTML='';close();render();
-    try{const publicBrand=await db.branding();if(id===refreshId&&publicBrand){brand=publicBrand;renderNavigation(null,page,brand,allowed);document.title='Masuk · '+brand.name}}
+    try{const publicBrand=await db.branding();if(id===refreshId&&publicBrand&&!data){const changed=publicBrand.name!==brand.name||publicBrand.logo!==brand.logo;brand=publicBrand;if(changed&&!document.querySelector('#loginform input:not(:placeholder-shown)'))render();else renderNavigation(null,page,brand,allowed)}}
     catch{/* Petunjuk koneksi tetap tersedia ketika perangkat luring. */}
     return;
    }
@@ -46,10 +46,10 @@
   }
   function render(){
    if(data&&!allowed(page))page=Object.keys(db.menus).find(allowed)||'noaccess';
-   document.title=(data?db.menus[page]||'Akun':'Masuk')+' · '+(brand.name||'Apotek Figiha');
+   document.title=(data?db.menus[page]||'Akun':'Masuk')+' · '+(brand.name||'Bee Farma');
    $('#header').className='sitehead';
    renderNavigation(data?.me,page,brand,allowed);
-   if(!data){$('#main').innerHTML=loginView(authError);return}
+   if(!data){$('#main').innerHTML=loginView(authError,brand.name);return}
    $('#main').innerHTML=page==='kasir'?pos():page==='pengaturan'?settingsView(data,settingsTab,draftLogo):page==='noaccess'?empty('Belum ada menu yang diizinkan','Hubungi pemilik untuk mengatur akses akun Anda.'):management(page,data);
   }
   function signOut(){
@@ -103,7 +103,7 @@
   document.addEventListener('click',async e=>{
    const button=e.target.closest('[data-a]');if(!button||button.disabled||busy)return;const a=button.dataset.a,id=button.dataset.id;
    try{switch(a){
-   case 'togglemenu':toggleMenu();break;case 'closemenu':closeMenu();break;
+   case 'togglemenu':toggleMenu();break;case 'closemenu':closeMenu();break;case 'togglegroup':button.closest('.snav-group').classList.toggle('collapsed');button.setAttribute('aria-expanded',String(!button.closest('.snav-group').classList.contains('collapsed')));break;
    case 'setup-owner':if(!data&&db.needsOwner())modal('Siapkan akun pemilik demo',ownerForm());break;
    case 'password':if(owner()){
     editing=data.staff.find(s=>s.id===id);if(editing)modal('Atur kata sandi',passwordForm(editing));
@@ -123,7 +123,7 @@
    case 'connection':if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'logout':await signOut();break;
-   case 'disconnect':if(owner()){db.disconnect();brand={name:'Apotek Figiha',logo:''};await signOut()}break;
+   case 'disconnect':if(owner()){db.disconnect();brand={name:'Bee Farma',logo:''};await signOut()}break;
    }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;if(a==='test')button.disabled=false}
   });
   document.addEventListener('submit',async e=>{
@@ -180,7 +180,7 @@
    if(e.key==='figiha.supabase'){db.logout();cartKey='';authError='';refresh();return}
    if(!db.config()&&e.key==='figiha.demo.v1'){if(!data||!dlg.open)refresh();else db.state().then(s=>{if(!s.me.owner&&(!s.me.menus.includes(page)||page==='pegawai')){close();refresh()}}).catch(()=>refresh())}
   });
-  document.addEventListener('keydown',e=>{if(dlg.open||$('#rightnav').matches(':modal')||page!=='kasir'||!data)return;if(e.key==='F2'){e.preventDefault();$('#catalogsearch').focus()}if(e.key==='F8'){e.preventDefault();payment()}});
+  document.addEventListener('keydown',e=>{if(dlg.open||document.body.classList.contains('side-modal')||page!=='kasir'||!data)return;if(e.key==='F2'){e.preventDefault();$('#catalogsearch').focus()}if(e.key==='F8'){e.preventDefault();payment()}});
   dlg.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
   dlg.addEventListener('close',()=>{if(!dlg.open){dlg.replaceChildren();editing=null}});
   refresh();

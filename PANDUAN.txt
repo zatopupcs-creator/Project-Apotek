@@ -1,11 +1,11 @@
-APOTEK FIGIHA
+BEE FARMA
 Panduan login, pengaturan struk, dan pembaruan website
 
 MENCOBA DI KOMPUTER
 1. Ekstrak seluruh ZIP ke satu folder.
-2. Buka index.html melalui Chrome atau Edge. Pada halaman masuk, klik "Siapkan akun pemilik demo".
-3. Isi nama pemilik, username, ID, dan kata sandi pilihan Anda. Langkah ini tersedia sekali untuk data demo pada browser tersebut.
-4. Untuk membuka menu, klik Menu di kanan atas. Tutup melalui tombol silang di panel kanan.
+2. Buka index.html melalui Chrome atau Edge.
+3. Masuk dengan username "Bee Farma" (atau beefarma / BF-001) dan kata sandi admin123.
+4. Menu ada di sidebar kiri. Buka atau tutup dengan tombol tiga garis di sebelahnya.
 Data demo hanya tersimpan pada browser dan perangkat tersebut. Gunakan koneksi Supabase untuk pemakaian bersama.
 
 MEMPERBARUI PROJECT-APOTEK DI GITHUB
@@ -24,7 +24,8 @@ Gunakan proyek Supabase yang sama ketika memperbarui website lama.
 
 select figiha.setup_owner('email-pemilik@contoh.id', 'pemilik', 'AP-001', 'Nama Pemilik');
 
-6. Buka website. Klik Atur koneksi Supabase pada layar masuk, atau Pengaturan > Koneksi Supabase jika sedang mencoba mode demo. Masukkan Project URL dan publishable key atau anon key. Klik Uji koneksi kemudian Simpan koneksi.
+6. Hubungkan website: isi Project URL dan publishable/anon key sekali di file supabase-config.js (berlaku untuk semua perangkat, tidak tampil di halaman depan). Alternatif: masuk sebagai pemilik lalu buka Pengaturan > Koneksi Supabase.
+   Untuk akun bawaan: buat pengguna Auth beefarma@pegawai.apotek.invalid dengan kata sandi admin123 (email dikonfirmasi), lalu jalankan select figiha.setup_owner('beefarma@pegawai.apotek.invalid','beefarma','BF-001','Bee Farma');
 7. Masuk menggunakan username atau ID dari langkah 5 dan kata sandi akun pemilik Supabase. Setiap browser kasir perlu dikonfigurasi satu kali. Akun pegawai dan transaksi menggunakan database yang sama.
 8. Jika koneksi lama masih tersimpan di browser, langsung masuk setelah menyelesaikan langkah 1–5.
 

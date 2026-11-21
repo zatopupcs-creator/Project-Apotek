@@ -3,6 +3,8 @@ const ApotekData = (() => {
   const categories=['Obat','Vitamin','Herbal','Alat kesehatan','Perawatan'];
   const localKey='figiha.demo.v1', cfgKey='figiha.supabase', authKey='figiha.session.v2', demoSessionKey='figiha.demo.login.v2';
   const settingsId='00000000-0000-0000-0000-000000000001';
+  const defaultName='Bee Farma';
+  const defaultCredential={salt:'9186b0d8f63b594553c7eb017c04f1cb',iterations:310000,hash:'33044735f358a919c8981b427514e5146f6e6652b83c09fc7cdf6806d431ee9f',version:'40000000-0000-0000-0000-00000000b3ef'};
   const uuid=()=>crypto.randomUUID();
   function seed(){
    const suppliers=[
@@ -17,10 +19,10 @@ const ApotekData = (() => {
    ['Masker Medis','Alat kesehatan','Kotak','Masker sekali pakai',25000,18000,52,'masker'],
    ['Oralit','Obat','Sachet','Serbuk oralit',2500,1500,75,'oralit'],
    ['Hand Sanitizer','Perawatan','Botol','500 ml',42500,30000,8,'hand-sanitizer']];
-   const owner={id:'20000000-0000-0000-0000-000000000001',name:'Pemilik',email:'',owner:true,active:true,menus:Object.keys(menus),rev:1};
-   return {settings:{id:settingsId,name:'Apotek Figiha',address:'',phone:'',footer:'Terima kasih atas kunjungan Anda.',width:'80',rev:1},suppliers,staff:[owner],me:owner,sales:[],products:rows.map(([name,category,unit,detail,price,cost,stock,img],i)=>({id:'30000000-0000-0000-0000-'+String(i+1).padStart(12,'0'),name,category,unit,detail,price,cost,stock,image:'assets/'+img+'.jpg',sku:'AF-'+String(i+1).padStart(3,'0'),minimum:10,supplier:suppliers[i%2].id,batch:'',expiry:'',rev:1}))};
+   const owner={id:'20000000-0000-0000-0000-000000000001',name:defaultName,email:'',username:'beefarma',employee_code:'BF-001',credential:{...defaultCredential},owner:true,active:true,menus:Object.keys(menus),rev:1};
+   return {settings:{id:settingsId,name:defaultName,address:'',phone:'',footer:'Terima kasih atas kunjungan Anda.',width:'80',rev:1},suppliers,staff:[owner],me:owner,sales:[],products:rows.map(([name,category,unit,detail,price,cost,stock,img],i)=>({id:'30000000-0000-0000-0000-'+String(i+1).padStart(12,'0'),name,category,unit,detail,price,cost,stock,image:'assets/'+img+'.jpg',sku:'AF-'+String(i+1).padStart(3,'0'),minimum:10,supplier:suppliers[i%2].id,batch:'',expiry:'',rev:1}))};
   }
-  function config(){return JSON.parse(localStorage.getItem(cfgKey)||'null')}
+  function config(){return JSON.parse(localStorage.getItem(cfgKey)||'null')||globalThis.APOTEK_SUPABASE||null}
   function session(){return JSON.parse(sessionStorage.getItem(config()?authKey:demoSessionKey)||'null')}
   function logout(){
    sessionStorage.removeItem('figiha.session');
@@ -51,7 +53,8 @@ const ApotekData = (() => {
    if(!health?.ready)throw Error('Fungsi login belum siap.');
   }
   async function connect(c){await testConfig(c);logout();localStorage.setItem(cfgKey,JSON.stringify(c))}
-  const invalidLogin='Username/ID atau kata sandi keliru, atau akun belum aktif.';
+  const invalidLogin='Username/ID atau kata sandi salah';
+  const cleanId=v=>String(v??'').trim().replace(/\s+/g,'');
   function rememberAuth(auth){
    if(!auth.expires_at)auth.expires_at=Math.floor(Date.now()/1000)+Number(auth.expires_in||3600);
    sessionStorage.setItem(authKey,JSON.stringify(auth));
@@ -69,7 +72,9 @@ const ApotekData = (() => {
   const edge='/functions/v1/apotek-akses';
   async function login(identifier,password){
    if(!config())return loginLocal(identifier,password);
-   const auth=await http(config(),edge,{action:'login',identifier:identifier.trim(),password});
+   let auth;
+   try{auth=await http(config(),edge,{action:'login',identifier:cleanId(identifier),password})}
+   catch(e){if(/keliru|salah|belum aktif|401/i.test(e.message))throw Error(invalidLogin);throw e}
    if(!auth?.access_token)throw Error(invalidLogin);
    rememberAuth(auth);
   }
@@ -140,12 +145,16 @@ const ApotekData = (() => {
    startLocalSession(person);
   }
   async function loginLocal(identifier,password){
-   const alias=identifier.trim().toLowerCase(),s=readLocal().staff.find(p=>p.active&&[p.username,p.employee_code].some(v=>v&&v.toLowerCase()===alias));
+   const alias=cleanId(identifier).toLowerCase(),s=readLocal().staff.find(p=>p.active&&[p.username,p.employee_code].some(v=>v&&v.toLowerCase()===alias));
    if(!s?.credential)throw Error(invalidLogin);
    const {hash,salt,iterations}=s.credential;if(await derivePassword(password,salt,iterations)!==hash)throw Error(invalidLogin);
    startLocalSession(s);
   }
-  function readLocal(){let data=localStorage.getItem(localKey);if(data)return JSON.parse(data);let initial=seed();localStorage.setItem(localKey,JSON.stringify(initial));return initial}
+  function readLocal(){let data=localStorage.getItem(localKey);if(data){
+   const d=JSON.parse(data),o=d.staff?.find(x=>x.owner);
+   if(o&&!o.credential){Object.assign(o,{username:o.username||'beefarma',employee_code:o.employee_code||'BF-001',credential:{...defaultCredential},active:true});if(!d.settings?.name||d.settings.name==='Apotek Figiha')d.settings.name=defaultName;localStorage.setItem(localKey,JSON.stringify(d))}
+   return d}
+   let initial=seed();localStorage.setItem(localKey,JSON.stringify(initial));return initial}
   async function changeLocal(fn){const act=()=>{const db=readLocal(),result=fn(db);localStorage.setItem(localKey,JSON.stringify(db));return result};return navigator.locks?navigator.locks.request(localKey,act):act()}
   function restoreLogo(s,logos){
    if(!s.business?.logoRef)return s;

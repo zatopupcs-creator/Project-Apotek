@@ -1,48 +1,54 @@
 const ApotekNavigation = (() => {
-  const {h,icon,btn,ib,logoUrl} = ApotekUI;
+  const {h,icon,btn,logoUrl} = ApotekUI;
   const {menus,config} = ApotekData;
   const pane=document.getElementById('rightnav');
-  const desktop=matchMedia('(min-width: 1100px)');
-  let activeUser=null,expandedOnDesktop=localStorage.getItem('figiha.sidebar')!=='closed';
+  const toggle=document.getElementById('menu-toggle');
+  const backdrop=document.getElementById('side-backdrop');
+  const desktop=matchMedia('(min-width: 1000px)');
+  const body=document.body;
+  let activeUser=null,isOpen=false,groupCollapsed=false;
+  const preferOpen=()=>localStorage.getItem('figiha.sidebar')!=='closed';
   function sync(){
-   const docked=Boolean(activeUser&&desktop.matches&&pane.open);
-   document.body.classList.toggle('side-docked',docked);
-   const button=document.getElementById('menu-toggle');
-   if(button){button.setAttribute('aria-expanded',String(pane.open));button.title=pane.open?'Tutup menu':'Buka menu'}
+   const show=Boolean(activeUser&&isOpen);
+   body.classList.toggle('has-side',Boolean(activeUser));
+   body.classList.toggle('side-open',show);
+   body.classList.toggle('side-modal',show&&!desktop.matches);
+   pane.setAttribute('aria-hidden',String(!show));
+   if('inert' in pane)pane.inert=!show;
+   toggle.hidden=!activeUser;
+   toggle.setAttribute('aria-expanded',String(show));
+   toggle.title=show?'Tutup menu':'Buka menu';
+   toggle.setAttribute('aria-label',toggle.title);
   }
-  function openPane(){
-   if(!activeUser||pane.open)return;
-   if(desktop.matches)pane.show();else pane.showModal();
-   sync();
-  }
+  function openPane(){if(!activeUser)return;isOpen=true;sync()}
   function closeMenu(remember=true){
-   if(desktop.matches&&remember){expandedOnDesktop=false;localStorage.setItem('figiha.sidebar','closed')}
-   if(pane.open)pane.close();sync();
+   if(desktop.matches&&remember&&activeUser)localStorage.setItem('figiha.sidebar','closed');
+   isOpen=false;sync();
   }
   function selectMenu(){if(!desktop.matches)closeMenu(false)}
   function toggleMenu(){
-   if(pane.open){closeMenu();return}
-   if(desktop.matches){expandedOnDesktop=true;localStorage.setItem('figiha.sidebar','open')}
+   if(isOpen){closeMenu();return}
+   if(desktop.matches)localStorage.setItem('figiha.sidebar','open');
    openPane();
   }
-  pane.addEventListener('cancel',event=>{event.preventDefault();closeMenu()});
-  pane.addEventListener('click',event=>{
-   if(event.target!==pane||desktop.matches)return;
-   const rect=pane.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right)closeMenu(false);
-  });
-  desktop.addEventListener('change',()=>{closeMenu(false);if(desktop.matches&&expandedOnDesktop)openPane()});
+  backdrop.addEventListener('click',()=>closeMenu(false));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&body.classList.contains('side-modal'))closeMenu(false)});
+  desktop.addEventListener('change',()=>{isOpen=Boolean(activeUser)&&desktop.matches&&preferOpen();sync()});
   function renderNavigation(user,page,brand,can){
    const first=!activeUser&&user;activeUser=user;
    const logo=logoUrl(brand.logo)||'icon.svg';
+   const name=brand.name||'Bee Farma';
    document.querySelector('link[rel="icon"]').href=logo;
-   document.getElementById('header').innerHTML='<div class="headinner revised-head"><button class="brand" data-a="home" type="button"><img alt="" src="'+logo+'"><span>'+h(brand.name||'Apotek Figiha')+'</span></button>'+
-    (user?'<button type="button" id="menu-toggle" class="btn menu-toggle" data-a="togglemenu" aria-controls="rightnav" aria-expanded="false"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Menu</button>':
-    '<span class="mode-label">'+icon(config()?'database':'kasir',16)+(config()?'Kasir apotek':'Mode demo')+'</span>')+'</div>';
-   if(!user){closeMenu(false);pane.innerHTML='';return}
-   const links=Object.entries(menus).filter(([m])=>can(m)).map(([m,label])=>'<button type="button" class="navbtn '+(page===m?'current':'')+'" data-a="nav" data-id="'+m+'" '+(page===m?'aria-current="page"':'')+'>'+icon(m,18)+h(label)+'</button>').join('');
-   pane.innerHTML='<div class="drawer-head"><h2 id="nav-title">Menu</h2>'+ib('closemenu','Tutup menu','close')+'</div>'+
-    '<nav class="side-links" aria-label="Menu utama">'+links+'</nav><div class="drawer-profile"><span class="avatar">'+h(user.name.trim().slice(0,2).toUpperCase())+'</span><button data-a="account" class="who"><strong>'+h(user.name)+'</strong><small>'+h(user.owner?'Pemilik':user.employee_code||'Pegawai')+'</small></button></div><div class="drawer-foot">'+btn('logout','Keluar akun','user')+'</div>';
-   if(first&&desktop.matches&&expandedOnDesktop)openPane();sync();
+   // Header hanya dipakai pada layar masuk; setelah masuk navigasi ada di sidebar.
+   document.getElementById('header').innerHTML=user?'':'<div class="headinner revised-head"><span class="brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></span></div>';
+   if(!user){isOpen=false;pane.innerHTML='';sync();return}
+   const links=Object.entries(menus).filter(([m])=>can(m)).map(([m,label])=>'<button type="button" class="snav-item '+(page===m?'current':'')+'" data-a="nav" data-id="'+m+'" '+(page===m?'aria-current="page"':'')+'>'+icon(m,20)+'<span>'+h(label)+'</span></button>').join('');
+   pane.innerHTML='<div class="snav-brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></div>'+
+    '<nav class="snav-scroll" aria-label="Menu utama"><div class="snav-group'+(groupCollapsed?' collapsed':'')+'"><button type="button" class="snav-label" data-a="togglegroup" aria-expanded="'+(!groupCollapsed)+'"><span>MENU UTAMA</span>'+icon('down',16)+'</button><div class="snav-items">'+links+'</div></div></nav>'+
+    '<div class="snav-foot"><button type="button" data-a="account" class="snav-user"><span class="avatar">'+h(user.name.trim().slice(0,2).toUpperCase())+'</span><span class="who"><strong>'+h(user.name)+'</strong><small>'+h(user.owner?'Pemilik':user.employee_code||'Pegawai')+'</small></span></button>'+
+    btn('logout','Keluar','user','snav-logout')+'</div>';
+   if(first)isOpen=desktop.matches&&preferOpen();
+   sync();
   }
 return { closeMenu, selectMenu, toggleMenu, renderNavigation };
 })();
