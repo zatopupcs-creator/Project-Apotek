@@ -10,13 +10,14 @@ body.has-side #header{display:none}
 .snav-brand{display:flex;align-items:center;gap:12px;padding:4px 8px 18px;font-weight:800;font-size:1.22rem;letter-spacing:-.03em;text-transform:uppercase}
 .snav-brand img{width:46px;height:46px;border-radius:14px;object-fit:contain;background:#fff;flex-shrink:0}
 .snav-brand span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.snav-scroll{flex:1;min-height:0;overflow:hidden;padding:0 2px}
+.snav-scroll{flex:1;min-height:0;overflow:auto;padding:0 2px;scrollbar-width:none;-ms-overflow-style:none}
+.snav-scroll::-webkit-scrollbar{display:none;width:0;height:0}
 .snav-label{display:flex;width:100%;align-items:center;justify-content:space-between;padding:10px 12px;font-size:.74rem;font-weight:700;letter-spacing:.09em;color:#6d7686}
 .snav-label svg{transition:transform .2s}
 .snav-group.collapsed .snav-label svg{transform:rotate(-90deg)}
 .snav-group.collapsed .snav-items{display:none}
-.snav-items{display:grid;gap:clamp(1px,.45vh,4px);padding-top:4px}
-.snav-item{display:flex;align-items:center;gap:14px;width:100%;padding:clamp(5px,1.1vh,13px) 14px;border-radius:14px;color:#3b4454;font-size:.96rem;font-weight:550;text-align:left}
+.snav-items{display:grid;gap:4px;padding-top:4px}
+.snav-item{display:flex;align-items:center;gap:14px;width:100%;padding:13px 14px;border-radius:14px;color:#3b4454;font-size:.96rem;font-weight:550;text-align:left}
 .snav-item svg{color:#6d7686}
 .snav-item:hover{background:#f3f5fa}
 .snav-item.current{background:#fff0e5;color:#c84a12}
@@ -50,13 +51,5 @@ body.has-side #header{display:none}
  #rightnav{width:min(300px,86vw)}
 }
 @media(max-width:720px){.has-side main{padding-top:74px}.menu-toggle{top:14px;left:14px}.pagehead{padding-left:0}}
-@media(max-height:760px){
- #rightnav{padding-top:14px;padding-bottom:10px}
- .snav-brand{padding-bottom:6px}.snav-brand img{width:38px;height:38px}
- .snav-label{padding:6px 12px}
- .snav-foot{padding-top:8px;margin-top:4px}
- .snav-user{padding:4px 6px}.snav-user .avatar{width:36px;height:36px}
- .snav-logout{margin-top:4px;padding:10px}
-}
 @media print{.menu-toggle,#side-backdrop,#rightnav{display:none!important}}
 @media(prefers-reduced-motion:reduce){#rightnav,.menu-toggle,.has-side main{transition:none}}
