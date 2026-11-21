@@ -137,3 +137,21 @@ dialog[open]::backdrop{animation:fadein .24s ease}
  .btn:hover,.chip:hover,.square:hover,.iconbtn:hover,.card:hover,.snav-item:hover,.menu-toggle:hover{transform:none}
  .signin-card,dialog[open],dialog[open]::backdrop,#toast{animation:none}
 }
+#toast .okwrap{position:relative;display:grid;place-items:center;width:32px;height:32px;flex-shrink:0}
+#toast .okmark{width:32px;height:32px;fill:none;stroke:#fff;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;animation:okpop .45s .75s ease}
+#toast .okc{stroke-dasharray:145;stroke-dashoffset:145;transform:rotate(-90deg);transform-origin:50% 50%;animation:okdraw .5s ease forwards}
+#toast .okp{stroke-dasharray:40;stroke-dashoffset:40;animation:okdraw .3s .45s ease forwards}
+#toast .okwrap::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid #fff;opacity:0;animation:okburst .6s .75s ease-out}
+#toast .okwrap::before{content:'';position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:#fff;opacity:0;box-shadow:0 -19px #fff,0 19px #fff,19px 0 #fff,-19px 0 #fff,13px 13px #fff,-13px 13px #fff,13px -13px #fff,-13px -13px #fff;animation:oksparkle .65s .75s ease-out}
+@keyframes okdraw{to{stroke-dashoffset:0}}
+@keyframes okpop{0%{transform:scale(1)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
+@keyframes okburst{0%{opacity:.85;transform:scale(1)}100%{opacity:0;transform:scale(2.1)}}
+@keyframes oksparkle{0%{opacity:1;transform:scale(.3)}70%{opacity:1}100%{opacity:0;transform:scale(1.5)}}
+#toast.error{animation:toastin .32s cubic-bezier(.2,.7,.2,1),shake .4s .32s ease}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.flydot{position:fixed;z-index:70;width:30px;height:30px;border-radius:50%;background:#202630 center/cover no-repeat;border:2px solid #fff;box-shadow:0 6px 16px #0004;pointer-events:none}
+.square.ok{background:#43a64f;border-color:#43a64f;transform:scale(1.12)}
+@media(prefers-reduced-motion:reduce){
+ #toast .okc,#toast .okp{stroke-dashoffset:0;animation:none}
+ #toast .okmark,#toast .okwrap::before,#toast .okwrap::after,#toast.error{animation:none}
+}
