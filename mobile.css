@@ -65,3 +65,14 @@
 .signin-card{grid-template-columns:1fr!important;max-width:520px!important;min-height:0!important}
 .signin-form{padding:clamp(28px,5vw,44px)!important}
 .signin-form h1{text-align:center;font-size:clamp(1.3rem,5.2vw,1.95rem)!important;white-space:nowrap}
+.signin-form h1{margin-bottom:34px!important}
+.inputicon{position:relative;display:block;font-weight:400}
+.inputicon>svg{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#6b7280;pointer-events:none}
+.inputicon .control{padding-left:46px}
+.inputicon .pwtoggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;display:grid;place-items:center;border:0;background:none;color:#6b7280;border-radius:8px;cursor:pointer}
+.inputicon .pwtoggle:hover{color:#202630}
+.inputicon:has(.pwtoggle) .control{padding-right:48px}
+.pwtoggle .eye-hide{display:none}
+.pwtoggle.on .eye-hide{display:grid}
+.pwtoggle.on .eye-show{display:none}
+.pwtoggle span{display:grid}
