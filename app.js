@@ -11,7 +11,7 @@
   const allowed=m=>Boolean(data&&Object.hasOwn(db.menus,m)&&(owner()||m!=='pegawai'&&data.me.menus.includes(m)));
   const product=id=>data.products.find(p=>p.id===id);
   const asForm=form=>Object.fromEntries(new FormData(form));
-  const feedback=(msg,kind='ok')=>{const t=$('#toast');t.className=kind==='error'?'error':'';t.innerHTML=icon(kind==='error'?'close':'check',24)+'<span>'+h(msg)+'</span>';clearTimeout(timer);timer=setTimeout(()=>{t.className='';t.innerHTML=''},3300)};
+  const feedback=(msg,kind='ok')=>{const t=$('#toast');t.className=kind==='error'?'error':'';t.innerHTML=(kind==='error'?icon('close',24):'<span class="okwrap"><svg class="okmark" viewBox="0 0 52 52" aria-hidden="true"><circle class="okc" cx="26" cy="26" r="23"/><path class="okp" d="M15 27l8 8 15-17"/></svg></span>')+'<span>'+h(msg)+'</span>';clearTimeout(timer);timer=setTimeout(()=>{t.className='';t.innerHTML=''},3300)};
   function modal(title,body){dlg.innerHTML='<div class="modalhead"><h2>'+h(title)+'</h2>'+ib('close','Tutup','close')+'</div><div class="modalbody">'+body+'</div>';if(!dlg.open)dlg.showModal()}
   function close(){if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
   function loadDraft(){
@@ -79,6 +79,19 @@
   }
   const mobileCart=()=>totals().qty?btn('jumpcart','Keranjang · '+rp(totals().total),'bag','primary floatcart'):'';
   function updateCart(){saveDraft();$('#cart').innerHTML=cartView();$('#mobilecart').innerHTML=mobileCart()}
+  function cartFx(button){
+   const card=button.closest('.card'),sq=card?.querySelector('.square'),img=card?.querySelector('.photo img');
+   if(sq){const old=sq.innerHTML;sq.innerHTML=icon('check',17);sq.classList.add('ok');setTimeout(()=>{if(sq.isConnected){sq.innerHTML=old;sq.classList.remove('ok')}},800)}
+   const mobile=$('#mobilecart .floatcart'),target=(mobile&&mobile.getClientRects().length)?mobile:$('#cart .boxicon');
+   if(!target||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+   const from=(sq||button).getBoundingClientRect(),to=target.getBoundingClientRect(),size=30,dot=document.createElement('span');
+   dot.className='flydot';if(img)dot.style.backgroundImage='url("'+img.src+'")';
+   dot.style.left=from.left+from.width/2-size/2+'px';dot.style.top=from.top+from.height/2-size/2+'px';
+   document.body.append(dot);
+   const dx=to.left+to.width/2-(from.left+from.width/2),dy=to.top+to.height/2-(from.top+from.height/2);
+   const anim=dot.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+dx*.45+'px,'+(dy*.45-70)+'px) scale(1)',opacity:1,offset:.45},{transform:'translate('+dx+'px,'+dy+'px) scale(.35)',opacity:.55}],{duration:700,easing:'cubic-bezier(.45,.05,.4,1)'});
+   anim.onfinish=()=>{dot.remove();for(const el of [$('#mobilecart .floatcart'),$('#cart .boxicon'),$('#cart .count')])el?.animate([{transform:'scale(1)'},{transform:'scale(1.28)'},{transform:'scale(1)'}],{duration:320,easing:'ease-out'})};
+  }
   function changeQty(id,mode){const p=product(id);if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.','error');return}let n=mode==='remove'?0:(cart[id]||0)+(mode==='add'?1:-1);if(n>p.stock){feedback('Jumlah melebihi stok yang tersedia.','error');return}if(n<=0)delete cart[id];else cart[id]=n;discount=Math.min(discount,totals().sub);updateCart()}
   function payment(){const {sub,total,qty}=totals();if(!qty)return;
    if(pending){const prev=JSON.parse(sessionStorage.getItem(cartKey+'.payment')||'null');if(prev){modal('Periksa pembayaran','<p class="note">Pembayaran sebelumnya belum terkonfirmasi. Tekan periksa untuk mengambil struk atau menyelesaikan transaksi dengan nomor yang sama.</p>'+btn('retry','Periksa transaksi','receipt','primary')+'<p class="error"></p>');return}}
@@ -125,7 +138,7 @@
    case 'clearlogo':{const f=$('#businessform');if(f){draftLogo='';f.elements.logoFile.value='';updateLogoTile('');$('#receipt-preview').innerHTML=receiptPreview(receiptValues(f,''))}break}
    case 'nav':nav(id);break;case 'home':if(data)nav(Object.keys(db.menus).find(allowed));break;
    case 'account':selectMenu();account();break;case 'close':close();break;
-   case 'category':category=id;render();break;case 'add':case 'minus':case 'remove':changeQty(id,a);break;
+   case 'category':category=id;render();break;case 'add':case 'minus':case 'remove':{const before=totals().qty;changeQty(id,a);if(a==='add'&&button.closest('.card')&&totals().qty>before)cartFx(button);break}
    case 'jumpcart':$('#cart').scrollIntoView({behavior:'smooth'});break;
    case 'filter':modal('Filter produk','<form id="filterform"><div class="stack">'+field('Urutkan produk','sort',sort,{items:[['default','Urutan katalog'],['name','Nama A–Z'],['low','Harga terendah'],['high','Harga tertinggi']]})+'<label class="checkline"><input type="checkbox" name="available" '+(available?'checked':'')+'>Hanya produk dengan stok tersedia</label></div>'+formEnd('Terapkan filter')+'</form>');break;
    case 'discount':if(!pending)modal('Diskon transaksi','<form id="discountform">'+field('Potongan harga (Rp)','discount',discount,{type:'number',required:true,min:0,extra:'step="1" max="'+totals().sub+'"'})+formEnd('Terapkan diskon')+'</form>');break;
@@ -150,7 +163,7 @@
    if(b==='discountform'){discount=Number(v.discount);close();updateCart();return}
    if(b==='paymentform'){await finishPayment({id:orderId,items:totals().lines.map(({p,qty})=>({id:p.id,qty,price:p.price})),discount,paid:Number(v.paid),method:v.method});return}
    if(b==='ownerform'){await db.setupDemoOwner(v,v.password);close();cartKey='';await refresh();return}
-   if(b==='loginform'){await db.login(v.identifier,v.password);cartKey='';authError='';await refresh();return}
+   if(b==='loginform'){await db.login(v.identifier,v.password);cartKey='';authError='';await refresh();feedback('Berhasil masuk.');return}
    if(b==='passwordform'){await db.setPassword(editing.id,v.password);close();await refresh();feedback('Kata sandi disimpan.');return}
    if(b==='configform'){await db.connect(db.parseConfig(v.url,v.key));authError='';cartKey='';close();await refresh();feedback('Database terhubung. Masuk dengan akun pemilik database.');return}
    if(b==='businessform'){
