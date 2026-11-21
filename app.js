@@ -100,6 +100,11 @@
    catch(e){if(!/jaringan|fetch|network|timeout|502|503|504/i.test(e.message)){pending=false;saveDraft();sessionStorage.removeItem(cartKey+'.payment')}throw e}
   }
   function err(e,form){let el=form?.querySelector('.error')||(dlg.open?dlg.querySelector('.error'):null);if(el)el.textContent=e.message;else feedback(e.message)}
+  document.addEventListener('click',e=>{
+   const t=e.target.closest('.pwtoggle');if(!t)return;
+   const input=t.parentElement.querySelector('input'),show=input.type==='password';
+   input.type=show?'text':'password';t.classList.toggle('on',show);t.setAttribute('aria-label',show?'Sembunyikan kata sandi':'Tampilkan kata sandi');
+  });
   document.addEventListener('click',async e=>{
    const button=e.target.closest('[data-a]');if(!button||button.disabled||busy)return;const a=button.dataset.a,id=button.dataset.id;
    try{switch(a){
