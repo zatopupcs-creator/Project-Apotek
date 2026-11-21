@@ -67,17 +67,21 @@ const ApotekManagement = (() => {
   function aggregate(sales){let a={total:0,cost:0,discount:0,qty:0,sub:0},products=new Map(),groups=new Map(),methods=new Map();
    for(const s of sales){a.total+=s.total;a.cost+=s.cost;a.discount+=s.discount;a.sub+=s.subtotal;methods.set(s.method,(methods.get(s.method)||0)+s.total);
    const key=atDate(s.at).slice(0,({jam:13,hari:10,bulan:7,tahun:4}[mg.period]));groups.set(key,(groups.get(key)||0)+s.total);
-   for(const i of s.items){a.qty+=i.qty;let p=products.get(i.id)||{name:i.name,qty:0,sub:0};p.qty+=i.qty;p.sub+=i.qty*i.price;products.set(i.id,p)}}
+   for(const i of s.items){a.qty+=i.qty;
+    const line=i.qty*i.price,share=s.subtotal?line/s.subtotal:0;
+    const cost=Number.isFinite(i.cost)?i.cost*i.qty:(s.cost||0)*share;
+    const final=line-(s.discount||0)*share;
+    let p=products.get(i.id)||{name:i.name,qty:0,sub:0,cost:0,final:0};p.qty+=i.qty;p.sub+=line;p.cost+=cost;p.final+=final;products.set(i.id,p)}}
    return {a,products,groups,methods};
   }
   function reports(d){
    let sales=filtered(d),{a,products,groups,methods}=aggregate(sales);
-   const period=mg.period,select=field('Kelompokkan','period',period,{items:[['jam','Per jam'],['hari','Per hari'],['bulan','Per bulan'],['tahun','Per tahun']]});
+   const period='hari';
    const first=d.sales.reduce((n,x)=>Math.min(n,new Date(x.at).getTime()),Infinity),since=Number.isFinite(first)?ApotekDates.wall(first).slice(0,10):'';
    const rangeBtn='<div class="fieldbox"><span>Rentang waktu</span><button type="button" class="control selbtn rangebtn" data-dp="range" data-since="'+h(since)+'" aria-haspopup="dialog">'+icon('calendar',17)+'<span>'+h(rangeText())+'</span>'+icon('down',16)+'</button></div>';
    const max=Math.max(1,...groups.values());const oneDay=new Set([...groups.keys()].map(k=>k.slice(0,10))).size<2;let bars=[...groups].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>'<div class="barrow"><span>'+h(period==='jam'?(oneDay?'':k.slice(8,10)+'/'+k.slice(5,7)+' ')+k.slice(11,13)+'.00':k)+'</span><div class="track"><i style="width:'+v/max*100+'%"></i></div><b>'+rp(v)+'</b></div>').join('');
    const stats=[['Penjualan bersih',rp(a.total)],['Laba kotor',rp(a.total-a.cost)],['Transaksi',sales.length],['Produk terjual',a.qty]];
-   return head('Laporan penjualan','Pantau omzet, harga pokok, dan keuntungan apotek.',btn('export','Ekspor','download'))+'<div class="stack"><div class="panel reportfilters">'+select+rangeBtn+'</div><div class="stats">'+stats.map(([l,v])=>'<div class="stat"><span>'+l+'</span><b>'+v+'</b></div>').join('')+'</div><div class="panel"><h2>Penjualan per '+period+'</h2>'+(bars?'<div class="rangebars">'+bars+'</div>':empty('Belum ada penjualan pada periode ini'))+'</div><div class="split"><div class="panel"><div class="panelhead"><h2>Rincian penjualan</h2></div>'+line('Penjualan sebelum diskon',rp(a.sub))+line('Diskon',rp(a.discount))+line('Harga pokok penjualan',rp(a.cost))+line('Laba kotor',rp(a.total-a.cost))+line('Margin kotor',a.total?((a.total-a.cost)/a.total*100).toFixed(1)+'%':'—')+'</div><div class="panel"><div class="panelhead"><h2>Metode pembayaran</h2></div>'+([...methods].map(([m,v])=>line(m,rp(v))).join('')||'<span class="small">Belum ada pembayaran.</span>')+'</div></div><div class="panel"><div class="panelhead"><h2>Produk terlaris</h2></div>'+(products.size?table(['Produk','Jumlah terjual','Penjualan sebelum diskon'],[...products.values()].sort((a,b)=>b.qty-a.qty).map(p=>row(h(p.name),p.qty,rp(p.sub)))):empty('Belum ada produk terjual'))+'</div></div>';
+   return head('Laporan penjualan','Pantau omzet, harga pokok, dan keuntungan apotek.',btn('export','Ekspor','download'))+'<div class="stack"><div class="panel reportfilters">'+rangeBtn+'</div><div class="stats">'+stats.map(([l,v])=>'<div class="stat"><span>'+l+'</span><b>'+v+'</b></div>').join('')+'</div><div class="panel"><h2>Penjualan per '+period+'</h2>'+(bars?'<div class="rangebars">'+bars+'</div>':empty('Belum ada penjualan pada periode ini'))+'</div><div class="split"><div class="panel"><div class="panelhead"><h2>Rincian penjualan</h2></div>'+line('Penjualan sebelum diskon',rp(a.sub))+line('Diskon',rp(a.discount))+line('Harga pokok penjualan',rp(a.cost))+line('Laba kotor',rp(a.total-a.cost))+line('Margin kotor',a.total?((a.total-a.cost)/a.total*100).toFixed(1)+'%':'—')+'</div><div class="panel"><div class="panelhead"><h2>Metode pembayaran</h2></div>'+([...methods].map(([m,v])=>line(m,rp(v))).join('')||'<span class="small">Belum ada pembayaran.</span>')+'</div></div><div class="panel"><div class="panelhead"><h2>Produk terlaris</h2></div>'+(products.size?table(['Produk','Jumlah terjual','Penjualan sebelum diskon','Harga awal','Harga akhir','Untung'],[...products.values()].sort((a,b)=>b.qty-a.qty).map(p=>row(h(p.name),p.qty,rp(p.sub),rp(Math.round(p.cost)),rp(Math.round(p.final)),'<b class="'+(p.final-p.cost<0?'lowtext':'')+'">'+rp(Math.round(p.final-p.cost))+'</b>'))).replace('class="tablewrap"','class="tablewrap nums"')+'<p class="note">Harga awal adalah total harga beli produk yang terjual. Harga akhir adalah hasil penjualan setelah dikurangi diskon. Untung adalah harga akhir dikurangi harga awal.</p>':empty('Belum ada produk terjual'))+'</div></div>';
   }
   function download(blob,name){
    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
@@ -96,7 +100,7 @@ const ApotekManagement = (() => {
    const model={brand:d.settings.name||'Apotek',period:rangeText(),printed:ApotekDates.label(ApotekDates.nowWall()),
     stats:[['Penjualan bersih',rp(a.total)],['Laba kotor',rp(a.total-a.cost)],['Transaksi',String(sales.length)],['Produk terjual',String(a.qty)],['Penjualan sebelum diskon',rp(a.sub)],['Diskon',rp(a.discount)],['Harga pokok',rp(a.cost)],['Margin kotor',a.total?((a.total-a.cost)/a.total*100).toFixed(1)+'%':'-']],
     methods:[...methods].map(([m,v])=>[m,rp(v)]),
-    top:[...products.values()].sort((x,y)=>y.qty-x.qty).slice(0,10).map(p=>[p.name,String(p.qty),rp(p.sub)]),
+    top:[...products.values()].sort((x,y)=>y.qty-x.qty).slice(0,10).map(p=>[p.name,String(p.qty),rp(p.sub),rp(Math.round(p.cost)),rp(Math.round(p.final)),rp(Math.round(p.final-p.cost))]),
     rows:sales.map(s=>[nomor(s),date(s.at,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),s.cashier,s.method,String(s.items.reduce((n,i)=>n+i.qty,0)),rp(s.total),rp(s.total-s.cost)])};
    download(ApotekPdf.report(model),'laporan-penjualan-'+today()+'.pdf');
   }

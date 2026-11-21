@@ -5,17 +5,22 @@ const ApotekSettings = (() => {
 
   function connectionView(){
    const c=db.config();
-   return '<form id="configform"><div class="panelhead"><h2>Koneksi Supabase</h2><span class="status '+(c?'':'demo')+'">'+(c?'Supabase':'Mode demo')+'</span></div>'+
+   const code=c?"globalThis.APOTEK_SUPABASE = { url: '"+c.url+"', key: '"+c.key+"' };":'';
+   const info=c
+    ?'<p class="note">Database online terhubung. Transaksi, stok, dan laporan tersimpan di server sehingga bisa dibuka dari HP atau komputer mana pun.</p>'
+    :'<p class="note"><b>Saat ini data hanya tersimpan di browser perangkat ini.</b> HP atau komputer lain akan melihat data kosong. Isi Project URL dan kunci publik database di bawah agar semua perangkat memakai data yang sama.</p>';
+   const share=c?'<div class="sectiongap"><b>Kode untuk semua perangkat</b><p class="note">Koneksi di atas hanya tersimpan di browser ini. Salin kode berikut ke file <code>supabase-config.js</code> (ganti isinya), lalu unggah ulang ke GitHub. Setelah itu setiap perangkat otomatis terhubung tanpa pengaturan lagi.</p><textarea class="control" id="cfgcode" rows="3" readonly spellcheck="false">'+h(code)+'</textarea><div class="actions">'+btn('copycfg','Salin kode','copy')+'</div></div>':'';
+   return '<form id="configform"><div class="panelhead"><h2>Database</h2><span class="status '+(c?'':'demo')+'">'+(c?'Terhubung':'Belum terhubung')+'</span></div>'+info+
     '<div class="formgrid">'+
     field('Project URL','url',c?.url,{type:'url',required:true,wide:true,placeholder:'https://nama-proyek.supabase.co'})+
     field('Publishable key / anon key','key',c?.key,{required:true,wide:true,placeholder:'sb_publishable_…',extra:'autocomplete="off"'})+
     '</div>'+
-    '<p class="error" role="alert"></p><div class="actions">'+(c?btn('disconnect','Kembali ke demo'):'')+btn('test','Uji koneksi','database')+'<button class="btn primary">Simpan koneksi</button></div></form>';
+    '<p class="error" role="alert"></p><div class="actions">'+(c?btn('disconnect','Putuskan database'):'')+btn('test','Uji koneksi','database')+'<button class="btn primary">Simpan koneksi</button></div></form>'+share;
   }
   function loginView(error,name=''){
    const shop=String(name||'').trim().replace(/^apotek\s+/i,'');
    return '<div class="login-stage"><section class="signin-card"><div class="signin-photo" aria-hidden="true"><img src="assets/apotek-interior.jpg" alt=""></div>'+
-    '<div class="signin-form"><h1>'+h(shop?'Masuk ke apotek '+shop:'Masuk ke apotek')+'</h1><p>Gunakan username atau ID pegawai yang telah didaftarkan pemilik.</p>'+
+    '<div class="signin-form"><h1>'+h(shop?'Masuk ke apotek '+shop:'Masuk ke apotek')+'</h1>'+
     '<form id="loginform"><div class="stack">'+
     field('Username atau ID pegawai','identifier','',{required:true,placeholder:'Masukkan username atau ID',extra:'autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"'})+
     field('Kata sandi','password','',{type:'password',required:true,placeholder:'Masukkan kata sandi',extra:'autocomplete="current-password"'})+
@@ -45,7 +50,7 @@ const ApotekSettings = (() => {
    return ticket(sample);
   }
   function settingsView(d,tab,draftLogo){
-   const tabs=[['bisnis','Bisnis & struk','receipt'],...(d.me.owner?[['akun','Akun login','pegawai'],['koneksi','Koneksi Supabase','database']]:[])];
+   const tabs=[['bisnis','Bisnis & struk','receipt'],...(d.me.owner?[['akun','Akun login','pegawai'],['koneksi','Database','database']]:[])];
    const nav='<div class="settingsnav">'+tabs.map(([id,l,ic])=>btn('tab',l,ic,tab===id?'dark':'',id)).join('')+'</div>';
    const heading=head('Pengaturan','Kelola identitas apotek dan kebutuhan operasional.');
    if(tab==='koneksi'&&d.me.owner)return heading+nav+'<div class="panel settingsbox">'+connectionView()+'</div>';

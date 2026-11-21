@@ -40,9 +40,9 @@ const ApotekData = (() => {
    return {url:base.origin,key};
   }
   async function http(c,path,body,access,method='POST'){
-   let res;try{res=await fetch(c.url+path,{method,headers:{'Content-Type':'application/json',apikey:c.key,...(access?{Authorization:'Bearer '+access}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})})}catch{throw Error('Gagal menjangkau Supabase. Periksa URL dan jaringan.')}
+   let res;try{res=await fetch(c.url+path,{method,headers:{'Content-Type':'application/json',apikey:c.key,...(access?{Authorization:'Bearer '+access}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})})}catch{throw Error('Gagal menjangkau database. Periksa URL dan jaringan.')}
    const data=await res.json().catch(()=>null);
-   if(!res.ok)throw Error(data?.msg||data?.message||data?.error_description||'Permintaan Supabase gagal ('+res.status+').');
+   if(!res.ok)throw Error(data?.msg||data?.message||data?.error_description||'Permintaan ke database gagal ('+res.status+').');
    return data;
   }
   async function testConfig(c){
@@ -133,7 +133,7 @@ const ApotekData = (() => {
    return {username,employee_code};
   }
   async function setupDemoOwner(profile,password){
-   if(config())throw Error('Gunakan akun pemilik proyek Supabase Anda.');
+   if(config())throw Error('Gunakan akun pemilik database Anda.');
    const credential=await createCredential(password);
    const person=await changeLocal(d=>{
     const owner=d.staff.find(s=>s.owner);
@@ -176,7 +176,7 @@ const ApotekData = (() => {
    const products=(stock||can(me,'kasir')||can(me,'suplier'))?d.products.map(p=>{
     if(stock)return p;const {cost,batch,expiry,...item}=p;return item;
    }):[];
-   const sales=(reports||can(me,'riwayat'))?d.sales.map(s=>{if(reports)return s;const {cost,...summary}=s;return summary}):[];
+   const sales=(reports||can(me,'riwayat'))?d.sales.map(s=>{if(reports)return s;const {cost,...summary}=s;summary.items=summary.items.map(({cost:_,...i})=>i);return summary}):[];
    return {me:publicProfile(me),settings:d.settings,products,sales:sales.map(s=>restoreLogo(s,d.receiptLogos)),staff:me.owner?d.staff.map(publicProfile):[],
    suppliers:(stock||can(me,'suplier'))?d.suppliers:[]};
   }
@@ -203,7 +203,7 @@ const ApotekData = (() => {
    const saved=db.sales.find(x=>x.id===id);if(saved)return restoreLogo(saved,db.receiptLogos);
    let subtotal=0,cost=0;const items=cart.map(({id,qty})=>{
    const p=db.products.find(x=>x.id===id);if(!p||!Number.isInteger(qty)||qty<1||p.stock<qty)throw Error('Stok '+(p?.name||'produk')+' tidak mencukupi.');
-   subtotal+=p.price*qty;cost+=p.cost*qty;p.stock-=qty;p.rev++;return {id,qty,name:p.name,unit:p.unit,price:p.price};
+   subtotal+=p.price*qty;cost+=p.cost*qty;p.stock-=qty;p.rev++;return {id,qty,name:p.name,unit:p.unit,price:p.price,cost:p.cost};
    });
    const total=subtotal-discount;if(!items.length||discount<0||total<0||paid<total)throw Error('Periksa kembali total pembayaran.');
    const sale={id,number:db.sales.length+1,at:new Date().toISOString(),cashier:cashier.name,business:snapshotBusiness(db),items,subtotal,cost,discount,total,paid,change:paid-total,method};db.sales.unshift(sale);return restoreLogo(sale,db.receiptLogos);

@@ -120,6 +120,9 @@ begin
 end $$;
 revoke all on function public.figiha_password_target(uuid),public.figiha_bind_staff(uuid,uuid) from public,anon;
 grant execute on function public.figiha_password_target(uuid),public.figiha_bind_staff(uuid,uuid) to authenticated;
+create or replace function figiha.strip_cost(d jsonb) returns jsonb language sql immutable set search_path='' as $f$
+ select (d-'cost')||jsonb_build_object('items',coalesce((select jsonb_agg(i-'cost') from jsonb_array_elements(coalesce(d->'items','[]'::jsonb)) i),'[]'::jsonb))
+$f$;
 create or replace function public.figiha_state() returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare s figiha.staff:=figiha.me(); result jsonb; canstock bool:=s.owner or 'stok'=any(s.menus);
 begin
@@ -130,7 +133,7 @@ begin
  'suppliers',coalesce((select jsonb_agg(data||jsonb_build_object('id',id,'rev',rev)) from figiha.records where kind='suppliers' and (canstock or 'suplier'=any(s.menus))),'[]'),
  'staff',coalesce((select jsonb_agg((to_jsonb(f)-'email'-'auth_user_id')||jsonb_build_object('provisioned',f.auth_user_id is not null) order by f.name) from figiha.staff f where s.owner),'[]'),
  'receiptLogos',coalesce((select jsonb_object_agg(id,image) from figiha.receipt_logos where s.owner or s.menus&&array['riwayat','laporan']),'{}'),
- 'sales',coalesce((select jsonb_agg((case when s.owner or 'laporan'=any(s.menus) then data else data-'cost' end)||jsonb_build_object('id',id,'number',number,'at',created_at) order by created_at desc) from figiha.sales where s.owner or s.menus&&array['riwayat','laporan']),'[]')
+ 'sales',coalesce((select jsonb_agg((case when s.owner or 'laporan'=any(s.menus) then data else figiha.strip_cost(data) end)||jsonb_build_object('id',id,'number',number,'at',created_at) order by created_at desc) from figiha.sales where s.owner or s.menus&&array['riwayat','laporan']),'[]')
  ) into result;return result;
 end $$;
 create or replace function public.figiha_save(p_kind text,p_id uuid,p_rev int,p_data jsonb)
@@ -179,7 +182,7 @@ begin
  select * into old from figiha.sales where id=p_id;
  if found then
   if old.cashier<>s.id then raise exception 'Nomor transaksi sudah dipakai.'; end if;
-  receipt:=old.data-'cost';
+  receipt:=figiha.strip_cost(old.data);
   if receipt->'business' ? 'logoRef' then
    select image into logo_image from figiha.receipt_logos where id=(receipt#>>'{business,logoRef}');
    receipt:=jsonb_set(receipt,'{business,logo}',to_jsonb(coalesce(logo_image,'')));
@@ -192,7 +195,7 @@ begin
   if not found or line.minqty<1 or line.qty is null or line.qty>(r.data->>'stock')::integer then raise exception 'Stok telah berubah atau jumlah tidak valid.'; end if;
   subtotal:=subtotal+(r.data->>'price')::bigint*line.qty;
   cost:=cost+(r.data->>'cost')::bigint*line.qty;
-  items:=items||jsonb_build_array(jsonb_build_object('id',line.id,'qty',line.qty,'name',r.data->>'name','unit',r.data->>'unit','price',(r.data->>'price')::bigint));
+  items:=items||jsonb_build_array(jsonb_build_object('id',line.id,'qty',line.qty,'name',r.data->>'name','unit',r.data->>'unit','price',(r.data->>'price')::bigint,'cost',(r.data->>'cost')::bigint));
   update figiha.records set data=jsonb_set(data,'{stock}',to_jsonb((data->>'stock')::integer-line.qty)),rev=rev+1 where kind='products' and id=line.id;
  end loop;
  total:=subtotal-p_discount;
@@ -207,7 +210,7 @@ begin
  receipt:=jsonb_build_object('cashier',s.name,'items',items,'subtotal',subtotal,'discount',p_discount,'total',total,'cost',cost,'paid',p_paid,'change',p_paid-total,'method',p_method,'business',settings);
  insert into figiha.sales(id,cashier,data) values(p_id,s.id,receipt) returning * into old;
  if logo_ref is not null then receipt:=jsonb_set(receipt,'{business,logo}',to_jsonb(logo_image)); end if;
- return (receipt-'cost')||jsonb_build_object('id',old.id,'number',old.number,'at',old.created_at);
+ return figiha.strip_cost(receipt)||jsonb_build_object('id',old.id,'number',old.number,'at',old.created_at);
 end $$;
 revoke all on function public.figiha_state(),public.figiha_save(text,uuid,int,jsonb),public.figiha_checkout(uuid,jsonb,bigint,bigint,text) from public,anon;
 grant execute on function public.figiha_state(),public.figiha_save(text,uuid,int,jsonb),public.figiha_checkout(uuid,jsonb,bigint,bigint,text) to authenticated;

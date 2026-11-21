@@ -47,7 +47,7 @@ const ApotekPdf = (() => {
    section('Metode pembayaran');
    table([{h:'Metode',w:CW*.6},{h:'Penjualan',w:CW*.4,align:'right'}],m.methods);
    section('Produk terlaris');
-   table([{h:'Produk',w:CW*.55},{h:'Terjual',w:CW*.15,align:'right'},{h:'Penjualan sebelum diskon',w:CW*.3,align:'right'}],m.top);
+   table([{h:'Produk',w:CW*.25},{h:'Terjual',w:CW*.09,align:'right'},{h:'Sebelum diskon',w:CW*.17,align:'right'},{h:'Harga awal',w:CW*.16,align:'right'},{h:'Harga akhir',w:CW*.17,align:'right'},{h:'Untung',w:CW*.16,align:'right'}],m.top);
    section('Rincian transaksi ('+m.rows.length+')');
    table([{h:'No. struk',w:62},{h:'Waktu',w:104},{h:'Kasir',w:98},{h:'Metode',w:58},{h:'Item',w:34,align:'right'},{h:'Total',w:80,align:'right'},{h:'Laba kotor',w:79,align:'right'}],m.rows);
 

@@ -7,6 +7,7 @@ const ApotekIcons = (() => {
   riwayat:'<path d="M3 11a9 9 0 1 1 2 7M3 5v6h6m3-4v6l4 2"/>',
   pegawai:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-15a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5"/>',
   pengaturan:'<path d="m9.5 3-.7 2.2-2 .9-2.2-.5-2 3.4 1.5 1.7v2.5l-1.5 1.7 2 3.4 2.2-.5 2 .9.7 2.3h4l.7-2.3 2-.9 2.2.5 2-3.4-1.5-1.7v-2.5l1.5-1.7-2-3.4-2.2.5-2-.9L13.5 3z"/><circle cx="11.5" cy="12" r="3"/>',
+  copy:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
   search:'<circle cx="10.5" cy="10.5" r="6.8"/><path d="m16 16 4.6 4.6"/>',
   filter:'<path d="M3 7h9m4 0h5M3 17h3m4 0h11"/><circle cx="14" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
   bag:'<path d="M5 8h14l1 13H4zM9 9V6a3 3 0 0 1 6 0v3"/>',
