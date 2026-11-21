@@ -1,0 +1,45 @@
+APOTEK FIGIHA
+Panduan login, pengaturan struk, dan pembaruan website
+
+MENCOBA DI KOMPUTER
+1. Ekstrak seluruh ZIP ke satu folder.
+2. Buka index.html melalui Chrome atau Edge. Pada halaman masuk, klik "Siapkan akun pemilik demo".
+3. Isi nama pemilik, username, ID, dan kata sandi pilihan Anda. Langkah ini tersedia sekali untuk data demo pada browser tersebut.
+4. Untuk membuka menu, klik Menu di kanan atas. Tutup melalui tombol silang di panel kanan.
+Data demo hanya tersimpan pada browser dan perangkat tersebut. Gunakan koneksi Supabase untuk pemakaian bersama.
+
+MEMPERBARUI PROJECT-APOTEK DI GITHUB
+Buka repository Project-Apotek melalui browser menggunakan akun GitHub tujuan.
+Klik Add file lalu Upload files. Untuk repository kosong, klik "uploading an existing file".
+Seret semua isi folder hasil ekstrak, termasuk assets dan supabase. Pastikan index.html berada pada tingkat teratas. Klik Commit changes.
+Jika website sudah terhubung dengan hosting, gunakan versi commit terbaru. Unggahan GitHub berisi kode aplikasi. Penyiapan database dan fungsi login dilakukan di proyek Supabase.
+
+MEMASANG ATAU MEMPERBARUI SUPABASE MELALUI BROWSER
+Gunakan proyek Supabase yang sama ketika memperbarui website lama.
+1. Buka SQL Editor. Salin seluruh isi database.sql dan jalankan. Skrip ini memperbarui skema dan mempertahankan data stok, transaksi, serta profil lama.
+2. Buka Edge Functions, buat fungsi melalui editor dengan nama persis apotek-akses. Jika sudah ada, buka editornya. Salin seluruh isi supabase/functions/apotek-akses/index.ts ke index.ts pada editor. Klik Deploy.
+3. Buka pengaturan fungsi apotek-akses. Nonaktifkan "Verify JWT with legacy secret" untuk fungsi ini. Formulir login menghubungi fungsi sebelum pengguna mempunyai sesi. Operasi pembuatan dan pengubahan kata sandi memeriksa sesi serta status pemilik pada server.
+4. Untuk proyek baru, buat pengguna pemilik melalui Authentication > Users, tetapkan email dan kata sandi, lalu konfirmasikan email. Untuk pembaruan, gunakan email dan kata sandi akun pemilik yang sudah ada.
+5. Di SQL Editor, jalankan perintah berikut secara terpisah. Ganti nilai contoh dengan identitas pemilik Anda.
+
+select figiha.setup_owner('email-pemilik@contoh.id', 'pemilik', 'AP-001', 'Nama Pemilik');
+
+6. Buka website. Klik Atur koneksi Supabase pada layar masuk, atau Pengaturan > Koneksi Supabase jika sedang mencoba mode demo. Masukkan Project URL dan publishable key atau anon key. Klik Uji koneksi kemudian Simpan koneksi.
+7. Masuk menggunakan username atau ID dari langkah 5 dan kata sandi akun pemilik Supabase. Setiap browser kasir perlu dikonfigurasi satu kali. Akun pegawai dan transaksi menggunakan database yang sama.
+8. Jika koneksi lama masih tersimpan di browser, langsung masuk setelah menyelesaikan langkah 1–5.
+
+Nama dan logo apotek ditampilkan pada layar masuk. Simpan kredensial server hanya di Supabase. Kolom kunci pada website hanya menerima kunci publik.
+
+MENDAFTARKAN PEGAWAI
+Masuk sebagai pemilik. Buka Menu > Pengaturan > Akun login > Tambah akun.
+Isi nama, username, ID pegawai, dan kata sandi. Pilih akses menu, aktifkan akun, lalu klik Daftarkan akun.
+Pegawai dapat masuk memakai username atau ID dan kata sandi yang sama. Huruf besar/kecil pada username serta ID diabaikan.
+Ikon pensil membuka formulir perubahan identitas, hak akses, status aktif, dan pengaturan kata sandi. Jika akun menunjukkan Perlu aktivasi, buka formulirnya lalu pilih Aktifkan login.
+Untuk akun lama yang sudah menggunakan email Supabase, lihat atau ubah username serta ID pada daftar akun. Kata sandi lama tetap berlaku dan dikelola melalui Supabase Authentication.
+
+MENGUBAH LOGO DAN ISI STRUK
+Buka Menu > Pengaturan > Bisnis & struk. Klik Pilih gambar untuk memasang atau mengganti logo PNG, JPG, atau WebP. Tombol Hapus logo menghapus logo pilihan setelah disimpan.
+Isi nama apotek, alamat, telepon, judul struk, teks kepala, dan pesan penutup. Pilih kertas 58 mm atau 80 mm, lalu atur apakah logo dan nama kasir ditampilkan.
+Periksa Pratinjau struk dan klik Simpan pengaturan. Transaksi baru memakai pengaturan ini. Salinan struk di Riwayat menggunakan isi yang tersimpan pada waktu penjualan.
+Untuk pencetakan, pilih printer dan ukuran kertas yang sesuai pada dialog cetak browser.
+
