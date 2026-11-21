@@ -14,13 +14,16 @@ const ApotekSettings = (() => {
     '</div>'+
     '<p class="error" role="alert"></p><div class="actions">'+(c?btn('disconnect','Putuskan database'):'')+btn('test','Uji koneksi','database')+'<button class="btn primary">Simpan koneksi</button></div></form>'+share;
   }
+  function loginField(label,name,iconName,type,placeholder,extra,toggle){
+   return '<label class="field">'+h(label)+'<span class="inputicon">'+icon(iconName,19)+'<input class="control" name="'+name+'" type="'+type+'" placeholder="'+h(placeholder)+'" required '+extra+'>'+(toggle?'<button type="button" class="pwtoggle" aria-label="Tampilkan kata sandi"><span class="eye-show">'+icon('eye',19)+'</span><span class="eye-hide">'+icon('eyeoff',19)+'</span></button>':'')+'</span></label>';
+  }
   function loginView(error,name='',logo=''){
    const shop=String(name||'').trim().replace(/^apotek\s+/i,'');
    return '<div class="login-stage"><section class="signin-card">'+
     '<div class="signin-form"><h1>'+h(shop?'Masuk ke apotek '+shop:'Masuk ke apotek')+'</h1>'+
     '<form id="loginform"><div class="stack">'+
-    field('Username atau ID pegawai','identifier','',{required:true,placeholder:'Masukkan username atau ID',extra:'autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"'})+
-    field('Kata sandi','password','',{type:'password',required:true,placeholder:'Masukkan kata sandi',extra:'autocomplete="current-password"'})+
+    loginField('Username atau ID pegawai','identifier','user','text','Masukkan username atau ID','autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"')+
+    loginField('Kata sandi','password','lock','password','Masukkan kata sandi','autocomplete="current-password"',true)+
     '</div><p class="error" role="alert">'+h(error)+'</p><button class="btn dark full login-submit">Masuk</button></form>'+
     '</div></section></div>';
   }
