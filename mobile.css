@@ -58,3 +58,9 @@
 .products .card{display:flex;flex-direction:column}
 .products .cardbody{flex:1;display:flex;flex-direction:column}
 .products .cardbottom{margin-top:auto;padding-top:10px}
+
+/* Panel kiri halaman masuk memakai logo dari Pengaturan */
+.signin-photo.has-logo{display:grid;place-items:center;background:linear-gradient(145deg,#fff4ea,#f6efe8);padding:32px}
+.signin-photo img.signin-logo{position:static;inset:auto;width:auto;height:auto;max-width:72%;max-height:72%;object-fit:contain}
+.signin-mark{color:#c8612f;display:grid;place-items:center}
+@media(max-width:640px){.signin-photo.has-logo{padding:18px}.signin-photo img.signin-logo{max-height:100px;max-width:60%}}

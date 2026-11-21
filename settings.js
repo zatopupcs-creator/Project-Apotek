@@ -14,9 +14,9 @@ const ApotekSettings = (() => {
     '</div>'+
     '<p class="error" role="alert"></p><div class="actions">'+(c?btn('disconnect','Putuskan database'):'')+btn('test','Uji koneksi','database')+'<button class="btn primary">Simpan koneksi</button></div></form>'+share;
   }
-  function loginView(error,name=''){
+  function loginView(error,name='',logo=''){
    const shop=String(name||'').trim().replace(/^apotek\s+/i,'');
-   return '<div class="login-stage"><section class="signin-card"><div class="signin-photo" aria-hidden="true"><img src="assets/apotek-interior.jpg" alt=""></div>'+
+   return '<div class="login-stage"><section class="signin-card"><div class="signin-photo has-logo" aria-hidden="true">'+(logoUrl(logo)?'<img class="signin-logo" src="'+logo+'" alt="">':'<span class="signin-mark">'+icon('kit',64)+'</span>')+'</div>'+
     '<div class="signin-form"><h1>'+h(shop?'Masuk ke apotek '+shop:'Masuk ke apotek')+'</h1>'+
     '<form id="loginform"><div class="stack">'+
     field('Username atau ID pegawai','identifier','',{required:true,placeholder:'Masukkan username atau ID',extra:'autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"'})+
