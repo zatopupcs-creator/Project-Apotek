@@ -1,5 +1,6 @@
 const ApotekUI = (() => {
   const {icon} = ApotekIcons;
+  globalThis.apotekBroken=img=>{const s=document.createElement('span');s.className='fallback';s.innerHTML=icon('pill',38);img.replaceWith(s)};
   const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rp=n=>'Rp'+new Intl.NumberFormat('id-ID').format(Number(n)||0);
   const date=(v,opts={day:'numeric',month:'short',year:'numeric'})=>new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',...opts}).format(new Date(v));
@@ -19,7 +20,7 @@ const ApotekUI = (() => {
   const head=(title,desc,action='')=>'<div class="pagehead"><div><h1>'+h(title)+'</h1><p>'+h(desc)+'</p></div>'+action+'</div>';
   const empty=(title,desc='')=>'<div class="empty">'+icon('box',28)+'<strong>'+h(title)+'</strong>'+h(desc)+'</div>';
   const line=(label,value,cls='')=>'<div class="line '+cls+'"><span>'+h(label)+'</span><b>'+h(value)+'</b></div>';
-  function photo(p){let img=p.image||'';return /^(assets\/[\w-]+\.jpg$|data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=]+$)/i.test(img)?'<img alt="'+h(p.name)+'" src="'+h(img)+'" loading="lazy" onerror="this.style.display=\'none\'">':'<span class="fallback">'+icon('pill',38)+'</span>'}
+  function photo(p){let img=p.image||'';return /^(assets\/[\w-]+\.jpg$|data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=]+$)/i.test(img)?'<img alt="'+h(p.name)+'" src="'+h(img)+'" loading="lazy" onerror="apotekBroken(this)">':'<span class="fallback">'+icon('pill',38)+'</span>'}
   const table=(headers,rows)=>'<div class="tablewrap"><table><thead><tr>'+headers.map(x=>'<th>'+h(x)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>{let i=0;return r.replace(/<td>/g,()=>'<td data-label="'+h(headers[i++]||'')+'">')}).join('')+'</tbody></table></div>';
   const row=(...cells)=>'<tr>'+cells.map(x=>'<td>'+x+'</td>').join('')+'</tr>';
   function logoUrl(value){

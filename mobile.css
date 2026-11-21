@@ -6,7 +6,9 @@
  main{padding-left:16px;padding-right:16px}
  .pagehead{gap:12px;align-items:flex-start;margin-bottom:16px}
  .pagehead>div:first-child{flex:1 1 0;min-width:0}
- .pagehead>.btn,.pagehead>.date{flex-shrink:0}
+ .pagehead{flex-wrap:wrap}
+ .pagehead>.btn{flex-shrink:0}
+ .pagehead>.date{flex:1 0 100%;max-width:none;white-space:nowrap;font-size:.82rem;margin-top:-2px}
  .pagehead h1{font-size:1.75rem}
  .panel{padding:16px;border-radius:16px}
  .panelhead{flex-wrap:wrap;gap:10px;margin-bottom:14px}
@@ -19,8 +21,9 @@
  .rangebtn{padding-left:12px;padding-right:12px;gap:8px}
  .rangebtn>span{font-size:.78rem;letter-spacing:-.01em}
  .barrow{grid-template-columns:58px minmax(0,1fr) auto;gap:8px;font-size:.8rem}
- .settingsnav{gap:6px}
- .settingsnav .btn{flex:1 1 auto;padding:10px}
+ .settingsnav{display:grid;grid-template-columns:repeat(3,minmax(0,auto));gap:6px;justify-content:stretch}
+ .settingsnav .btn{padding:10px 6px;font-size:.78rem;gap:5px;white-space:nowrap}
+ .settingsnav .btn svg{width:15px;height:15px}
  .actions{justify-content:stretch}
  .actions .btn{flex:1 1 auto}
  .toolsrow{gap:8px}
@@ -43,3 +46,15 @@
  .tablewrap .tableproduct b{display:block;line-height:1.3}
  .tablewrap .tableproduct small{margin-top:2px}
 }
+
+.photo .fallback,.thumb .fallback{width:100%;height:100%;min-height:44px}
+@media(max-width:720px){
+ .chips{scrollbar-width:none;margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+ .chips::-webkit-scrollbar{display:none}
+ .toolsrow .btn{flex-shrink:0}
+ .cardbottom{margin-top:8px}
+ .price{font-size:.98rem}
+}
+.products .card{display:flex;flex-direction:column}
+.products .cardbody{flex:1;display:flex;flex-direction:column}
+.products .cardbottom{margin-top:auto;padding-top:10px}

@@ -6,7 +6,7 @@ const ApotekSettings = (() => {
   function connectionView(){
    const c=db.config();
    const code=c?"globalThis.APOTEK_SUPABASE = { url: '"+c.url+"', key: '"+c.key+"' };":'';
-   const share=c?'<div class="sectiongap"><b>Kode untuk semua perangkat</b><p class="note">Koneksi di atas hanya tersimpan di browser ini. Salin kode berikut ke file <code>supabase-config.js</code> (ganti isinya), lalu unggah ulang ke GitHub. Setelah itu setiap perangkat otomatis terhubung tanpa pengaturan lagi.</p><textarea class="control" id="cfgcode" rows="3" readonly spellcheck="false">'+h(code)+'</textarea><div class="actions">'+btn('copycfg','Salin kode','copy')+'</div></div>':'';
+   const share=c?'<div class="sectiongap"><textarea class="control" id="cfgcode" rows="3" readonly spellcheck="false">'+h(code)+'</textarea><div class="actions">'+btn('copycfg','Salin kode','copy')+'</div></div>':'';
    return '<form id="configform"><div class="panelhead"><h2>Database</h2><span class="status '+(c?'':'demo')+'">'+(c?'Terhubung':'Belum terhubung')+'</span></div>'+
     '<div class="formgrid">'+
     field('Project URL','url',c?.url,{type:'url',required:true,wide:true,placeholder:'https://nama-proyek.supabase.co'})+
