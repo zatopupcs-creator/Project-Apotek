@@ -16,7 +16,7 @@ const ApotekSettings = (() => {
   }
   function loginView(error,name='',logo=''){
    const shop=String(name||'').trim().replace(/^apotek\s+/i,'');
-   return '<div class="login-stage"><section class="signin-card"><div class="signin-photo has-logo" aria-hidden="true">'+(logoUrl(logo)?'<img class="signin-logo" src="'+logo+'" alt="">':'<span class="signin-mark">'+icon('kit',64)+'</span>')+'</div>'+
+   return '<div class="login-stage"><section class="signin-card">'+
     '<div class="signin-form"><h1>'+h(shop?'Masuk ke apotek '+shop:'Masuk ke apotek')+'</h1>'+
     '<form id="loginform"><div class="stack">'+
     field('Username atau ID pegawai','identifier','',{required:true,placeholder:'Masukkan username atau ID',extra:'autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"'})+
