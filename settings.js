@@ -18,6 +18,11 @@ const ApotekSettings = (() => {
    const id='login-'+name;
    return '<div class="floatfield"><span class="inputicon">'+icon(iconName,19)+'<input class="control" id="'+id+'" name="'+name+'" type="'+type+'" placeholder=" " required '+extra+'><label for="'+id+'">'+h(label)+'</label>'+(toggle?'<button type="button" class="pwtoggle" aria-label="Tampilkan kata sandi"><span class="eye-show">'+icon('eye',19)+'</span><span class="eye-hide">'+icon('eyeoff',19)+'</span></button>':'')+'</span></div>';
   }
+  function updateLoginBrand(name,logo){
+   const img=document.querySelector('.signin-brand'),title=document.querySelector('.signin-form h1');
+   if(img)img.src=logoUrl(logo)||'icon.svg';
+   if(title){const shop=String(name||'').trim().replace(/^apotek\s+/i,'');title.textContent=shop?'Masuk ke apotek '+shop:'Masuk ke apotek'}
+  }
   function loginView(error,name='',logo=''){
    const shop=String(name||'').trim().replace(/^apotek\s+/i,'');
    return '<div class="login-stage"><section class="signin-card">'+
@@ -25,7 +30,7 @@ const ApotekSettings = (() => {
     '<form id="loginform"><div class="stack">'+
     loginField('Username atau ID pegawai','identifier','user','text','autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"')+
     loginField('Kata sandi','password','lock','password','autocomplete="current-password"',true)+
-    '</div><p class="error" role="alert">'+h(error)+'</p><button class="btn dark full login-submit">Masuk</button></form>'+
+    '</div><button class="btn dark full login-submit">Masuk</button></form>'+
     '</div></section></div>';
   }
   function ownerForm(){
@@ -84,5 +89,5 @@ const ApotekSettings = (() => {
     canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height);return canvas.toDataURL('image/webp',.85);
    } finally {source.close()}
   }
-return { connectionView, loginView, ownerForm, passwordForm, updateLogoTile, receiptPreview, settingsView, receiptValues, resizeLogo };
+return { connectionView, loginView, updateLoginBrand, ownerForm, passwordForm, updateLogoTile, receiptPreview, settingsView, receiptValues, resizeLogo };
 })();
