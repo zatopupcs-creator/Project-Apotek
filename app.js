@@ -127,6 +127,26 @@
   async function readPhoto(file){if(!file?.size)return editing?.image||'';if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12*1024*1024)throw Error('Pilih JPG, PNG, atau WebP maksimal 12 MB.');
    const bitmap=await createImageBitmap(file),scale=Math.min(1,640/Math.max(bitmap.width,bitmap.height));let canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));let ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();return canvas.toDataURL('image/jpeg',.82);
   }
+  const confirmForms={
+   businessform:['Simpan perubahan?','Identitas apotek dan isi struk akan diperbarui.','Simpan','check'],
+   configform:['Simpan koneksi database?','Koneksi baru akan dipakai dan Anda perlu masuk kembali.','Simpan','database'],
+   employeeform:['Simpan akun?','Data akun login ini akan disimpan.','Simpan','check'],
+   passwordform:['Simpan kata sandi?','Kata sandi akun ini akan diganti.','Simpan','lock']
+  };
+  let askOpen=null;
+  function askConfirm(title,text,okLabel='Ya',iconName='check'){
+   if(askOpen)return askOpen;
+   askOpen=new Promise(resolve=>{
+    const d=document.createElement('dialog');d.className='askdlg';
+    d.innerHTML='<span class="askicon">'+icon(iconName,26)+'</span><h2>'+h(title)+'</h2><p>'+h(text)+'</p><div class="actions"><button type="button" class="btn" data-ask="no">Batal</button><button type="button" class="btn dark" data-ask="yes">'+h(okLabel)+'</button></div>';
+    let done=false;
+    const finish=v=>{if(done)return;done=true;d.classList.add('closing');setTimeout(()=>{d.close();d.remove();askOpen=null;resolve(v)},170)};
+    d.addEventListener('click',e=>{const b=e.target.closest('[data-ask]');if(b)finish(b.dataset.ask==='yes');else if(e.target===d)finish(false)});
+    d.addEventListener('cancel',e=>{e.preventDefault();finish(false)});
+    document.body.append(d);d.showModal();d.querySelector('[data-ask="yes"]').focus();
+   });
+   return askOpen;
+  }
   function askRemove(id){const p=product(id);modal('Hapus dari keranjang','<p class="note">Hapus <b>'+h(p.name)+'</b> dari keranjang?</p><div class="actions">'+btn('close','Batal')+btn('confirmremove','Hapus','trash','dark',id)+'</div>')}
   let pendingPay=null;
   function doneFx(total){
@@ -191,12 +211,12 @@
    case 'connection':if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
-   case 'logout':await signOut();break;
-   case 'disconnect':if(owner()){db.disconnect();brand={name:'Bee Farma',logo:''};await signOut()}break;
+   case 'logout':if(await askConfirm('Keluar dari akun?','Anda perlu masuk lagi untuk memakai aplikasi.','Keluar','user'))await signOut();break;
+   case 'disconnect':if(owner()&&await askConfirm('Putuskan database?','Aplikasi akan kembali ke mode demo dan Anda keluar dari akun.','Putuskan','database')){db.disconnect();brand={name:'Bee Farma',logo:''};await signOut()}break;
    }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;button.classList.remove('loading');if(a==='test')button.disabled=false}
   });
   document.addEventListener('submit',async e=>{
-   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
+   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;if(confirmForms[b]){busy=true;const ok=await askConfirm(...confirmForms[b]);busy=false;if(!ok)return}busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
    try{
    if(b==='filterform'){sort=v.sort;available=fd.has('available');close();render();if(page==='kasir')catalogSwap();return}
    if(b==='discountform'){discount=Number(v.discount);close();updateCart();return}
