@@ -14,7 +14,14 @@
   function openCartPage(){if(!mq.matches){$('#cart')?.scrollIntoView({behavior:'smooth'});return}cartPushed=true;location.hash='keranjang';syncCartPage();$('#cart')?.scrollTo?.(0,0)}
   function leaveCart(){if(!cartPageOpen())return;if(cartPushed){cartPushed=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search+'#kasir');syncCartPage()}}
   const backArrow='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+  let dbUnlocked=false,afterUnlock=null,unlockKind='db';
   const owner=()=>Boolean(data?.me?.owner);
+  // tab/pengaturan database dikunci: pemilik wajib memasukkan kata sandi lagi setiap membukanya
+  function askUnlock(next,kind='db'){
+   afterUnlock=next;unlockKind=kind;
+   const text=kind==='owner'?'untuk mengedit akun pemilik.':'untuk membuka pengaturan database.';
+   modal('Konfirmasi kata sandi','<form id="unlockform"><p class="note">Masukkan kata sandi akun <b>'+h(data.me.name)+'</b> '+text+'</p>'+field('Kata sandi','password','',{type:'password',required:true,extra:'autocomplete="current-password"',placeholder:'Kata sandi akun Anda'})+formEnd(kind==='owner'?'Lanjutkan':'Buka database')+'</form>');
+  }
   const allowed=m=>Boolean(data&&Object.hasOwn(db.menus,m)&&(owner()||m!=='pegawai'&&data.me.menus.includes(m)));
   const product=id=>data.products.find(p=>p.id===id);
   const asForm=form=>Object.fromEntries(new FormData(form));
@@ -56,7 +63,7 @@
    if(!dlg.open)dlg.showModal();
    setTimeout(()=>{if(seq!==modalSeq||!dlg.open)return;const mb=dlg.querySelector('.modalbody');if(!mb)return;mb.className='modalbody in';mb.removeAttribute('aria-busy');mb.removeAttribute('inert');mb.innerHTML=body},wasOpen?260:420);
   }
-  function close(){modalSeq++;if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
+  function close(){modalSeq++;afterUnlock=null;if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
   function loadDraft(){
    const key='figiha.cart.'+(db.config()?.url||'demo')+'.'+data.me.id;
    if(key===cartKey)return;cartKey=key;const draft=JSON.parse(sessionStorage.getItem(key)||'{}');cart=draft.cart||{};discount=draft.discount||0;orderId=draft.id||db.uuid();pending=Boolean(draft.pending);
@@ -92,12 +99,14 @@
    }
   }
   function nav(m){
-   if(!allowed(m))return;selectMenu();cartPushed=false;page=m;mg.search='';draftLogo=data.settings.logo||'';
+   if(!allowed(m))return;selectMenu();cartPushed=false;dbUnlocked=false;page=m;mg.search='';draftLogo=data.settings.logo||'';
    if(location.hash!=='#'+m)location.hash=m;render();
   }
   function render(){
    if(data&&!allowed(page))page=Object.keys(db.menus).find(allowed)||'noaccess';
    document.title=(data?db.menus[page]||'Akun':'Masuk')+' · '+(brand.name||'Bee Farma');
+   if(page!=='pengaturan')dbUnlocked=false;
+   if(settingsTab==='koneksi'&&!dbUnlocked)settingsTab='bisnis';
    $('#header').className='sitehead';
    renderNavigation(data?.me,page,brand,allowed);
    syncCartPage();
@@ -105,7 +114,7 @@
    $('#main').innerHTML=page==='kasir'?pos():page==='pengaturan'?settingsView(data,settingsTab,draftLogo):page==='noaccess'?empty('Belum ada menu yang diizinkan','Hubungi pemilik untuk mengatur akses akun Anda.'):management(page,data);
   }
   function signOut(){
-   db.logout();close();data=null;authError='';cartKey='';currentSale=null;cart={};pending=false;settingsTab='bisnis';
+   db.logout();close();dbUnlocked=false;data=null;authError='';cartKey='';currentSale=null;cart={};pending=false;settingsTab='bisnis';
    page='kasir';if(location.hash)history.replaceState(null,'',location.pathname+location.search);
    return refresh();
   }
@@ -292,10 +301,11 @@
    case 'receipt':showReceipt(data.sales.find(s=>s.id===id));break;case 'print':if(await askConfirm('Cetak struk?','Struk akan dikirim ke dialog cetak browser.','Cetak','print')){busy=true;await doPrint()}break;
    case 'deleteproduct':{const p=data.products.find(x=>x.id===id);if(p)modal('Hapus produk','<p class="note">Produk <b>'+h(p.name)+'</b> akan dihapus permanen dari daftar stok. Riwayat transaksi yang sudah ada tidak berubah.</p><p class="error" role="alert"></p><div class="actions">'+btn('close','Batal')+btn('confirmdelete','Hapus','trash','dark',p.id)+'</div>');break}
    case 'confirmdelete':{const p=data.products.find(x=>x.id===id);if(!p)break;busy=true;await db.remove('products',p.id,p.rev);close();await trashFx([...document.querySelectorAll('#mgrows tr')].find(r=>r.querySelector('[data-a="deleteproduct"]')?.dataset.id===p.id));await refresh();feedback('Produk dihapus.');break}
-   case 'product':case 'supplier':case 'employee':edit(a,id);break;
+   case 'employee':if(id&&data.staff.find(x=>x.id===id)?.owner){askUnlock(()=>edit('employee',id),'owner');break}edit(a,id);break;
+   case 'product':case 'supplier':edit(a,id);break;
    case 'contact':{let s=data.suppliers.find(s=>s.id===id);modal(s.name,contact(s,data.products)+(allowed('suplier')?'<div class="actions">'+btn('supplier','Edit suplier','edit','',s.id)+'</div>':''));break}
-   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'tab':settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';render();break;case 'opensettings':close();nav('pengaturan');break;
-   case 'connection':if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
+   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'tab':{const go=()=>{settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';render()};if(id==='koneksi'&&!dbUnlocked){askUnlock(go);break}if(id!=='koneksi')dbUnlocked=false;go();break}case 'opensettings':close();nav('pengaturan');break;
+   case 'connection':if(owner()&&!dbUnlocked)askUnlock(()=>modal('Pengaturan database',connectionView()));else if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
    case 'logout':if(await askConfirm('Keluar dari akun?','Anda perlu masuk lagi untuk memakai aplikasi.','Keluar','user'))await signOut();break;
@@ -308,6 +318,7 @@
    if(b==='filterform'){sort=v.sort;available=fd.has('available');close();render();if(page==='kasir')catalogSwap();return}
    if(b==='discountform'){discount=Number(v.discount);close();updateCart();return}
    if(b==='paymentform'){const {total}=totals(),paid=Number(v.paid);pendingPay={id:orderId,items:totals().lines.map(({p,qty})=>({id:p.id,qty,price:p.price})),discount,paid,method:v.method};modal('Selesaikan pembayaran?','<p class="note">Pastikan pesanan dan nominal sudah benar sebelum menyelesaikan pembayaran.</p>'+line('Metode',v.method)+line('Total pembayaran',rp(total))+line('Uang diterima',rp(paid))+line('Kembalian',rp(paid-total))+'<p class="error" role="alert"></p><div class="actions">'+btn('pay','Kembali')+btn('confirmpay','Selesaikan','check','dark')+'</div>');return}
+   if(b==='unlockform'){try{await db.login(data.me.username||data.me.employee_code,v.password)}catch(e){throw /jaringan|fetch|network|timeout|50\d/i.test(e.message)?e:Error('Kata sandi salah.')}if(unlockKind==='db')dbUnlocked=true;const go=afterUnlock;afterUnlock=null;close();go?.();return}
    if(b==='ownerform'){await db.setupDemoOwner(v,v.password);close();cartKey='';await refresh();return}
    if(b==='loginform'){await db.login(v.identifier,v.password);cartKey='';authError='';await refresh();feedback('Berhasil masuk.');return}
    if(b==='passwordform'){await db.setPassword(editing.id,v.password);close();await refresh();feedback('Kata sandi disimpan.');return}
