@@ -54,7 +54,8 @@
    return t.innerHTML;
   }
   let modalSeq=0;
-  function modal(title,body){
+  function modal(title,body,cls=''){
+   dlg.classList.toggle('sheet',cls==='sheet');
    const seq=++modalSeq,wasOpen=dlg.open;let sk;
    try{sk=skeletonize(body)}catch{sk=''}
    const head='<div class="modalhead"><h2>'+h(title)+'</h2>'+ib('close','Tutup','close')+'</div>';
@@ -63,7 +64,7 @@
    if(!dlg.open)dlg.showModal();
    setTimeout(()=>{if(seq!==modalSeq||!dlg.open)return;const mb=dlg.querySelector('.modalbody');if(!mb)return;mb.className='modalbody in';mb.removeAttribute('aria-busy');mb.removeAttribute('inert');mb.innerHTML=body},wasOpen?260:420);
   }
-  function close(){modalSeq++;afterUnlock=null;if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
+  function close(){modalSeq++;afterUnlock=null;dlg.classList.remove('sheet');if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
   function loadDraft(){
    const key='figiha.cart.'+(db.config()?.url||'demo')+'.'+data.me.id;
    if(key===cartKey)return;cartKey=key;const draft=JSON.parse(sessionStorage.getItem(key)||'{}');cart=draft.cart||{};discount=draft.discount||0;orderId=draft.id||db.uuid();pending=Boolean(draft.pending);
@@ -119,7 +120,7 @@
    return refresh();
   }
   function pos(){
-   const dt='<div class="date">'+icon('calendar',18)+date(Date.now(),{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</div>';
+   const dt='<div class="date">'+icon('calendar',18)+'<span class="dlong">'+date(Date.now(),{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</span><span class="dshort">'+date(Date.now(),{day:'numeric',month:'short',year:'numeric'})+'</span></div>';
    return head('Kasir','Pilih produk untuk memulai transaksi penjualan.',dt)+'<div class="pos"><section class="catalog"><div class="toolsrow">'+search('catalogsearch',query,'Cari produk atau SKU…')+btn('filter','Filter','filter',sort!=='default'||available?'dark':'')+'</div><div class="chips" aria-label="Kategori produk">'+['Semua',...new Set([...db.categories,...data.products.map(p=>p.category)])].map(c=>'<button class="chip '+(category===c?'on':'')+'" data-a="category" data-id="'+h(c)+'" aria-pressed="'+(c===category)+'">'+(c==='Semua'?icon('grid',15):'')+h(c)+'</button>').join('')+'</div><div id="cataloglist">'+catalogList()+'</div></section><aside id="cart" class="cartpanel">'+cartView()+'</aside></div><div id="mobilecart">'+mobileCart()+'</div>';
   }
   let catalogTimer;
@@ -316,7 +317,14 @@
    case 'confirmpay':busy=true;await finishPayment(pendingPay);break;
    case 'confirmremove':{close();if(!pending){busy=true;await trashFx([...document.querySelectorAll('#cart .cartitem')].find(r=>r.dataset.pid===id))}changeQty(id,'remove');if(!cart[id])feedback('Produk dihapus dari keranjang.');break}
    case 'jumpcart':openCartPage();break;case 'cartback':leaveCart();break;
-   case 'filter':modal('Filter produk','<form id="filterform"><div class="stack">'+field('Urutkan produk','sort',sort,{items:[['default','Urutan katalog'],['name','Nama A–Z'],['low','Harga terendah'],['high','Harga tertinggi']]})+'<label class="checkline"><input type="checkbox" name="available" '+(available?'checked':'')+'>Hanya produk dengan stok tersedia</label></div>'+formEnd('Terapkan filter')+'</form>');break;
+   case 'filter':{
+    const chip=(name,val,label,on)=>'<label class="fchip"><input type="radio" name="'+name+'" value="'+val+'" '+(on?'checked':'')+'><span>'+label+'</span></label>';
+    modal('Filter produk','<form id="filterform" class="filtersheet"><div class="fsec"><h3>Urutkan</h3><div class="fchips">'+
+     [['default','Urutan katalog'],['name','Nama A–Z'],['low','Harga terendah'],['high','Harga tertinggi']].map(([v,l])=>chip('sort',v,l,sort===v)).join('')+
+     '</div></div><div class="fsec"><h3>Ketersediaan</h3><div class="fchips">'+chip('stockmode','all','Semua produk',!available)+chip('stockmode','available','Stok tersedia',available)+
+     '</div></div><div class="fsheetfoot"><button type="button" class="btn" data-a="filterreset">Reset</button><button type="submit" class="btn dark">Terapkan</button></div></form>','sheet');break}
+   case 'filterreset':sort='default';available=false;close();render();if(page==='kasir')catalogSwap();break;
+
    case 'discount':if(!pending)modal('Diskon transaksi','<form id="discountform">'+field('Potongan harga (Rp)','discount',discount,{type:'number',required:true,min:0,extra:'step="1" max="'+totals().sub+'"'})+formEnd('Terapkan diskon')+'</form>');break;
    case 'pay':payment();break;case 'retry':busy=true;await finishPayment(JSON.parse(sessionStorage.getItem(cartKey+'.payment')));break;
    case 'receipt':showReceipt(data.sales.find(s=>s.id===id));break;case 'print':if(await askConfirm('Cetak struk?','Struk akan dikirim ke dialog cetak browser.','Cetak','print')){busy=true;await doPrint()}break;
@@ -336,7 +344,7 @@
   document.addEventListener('submit',async e=>{
    e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;if(confirmForms[b]){busy=true;const cf=typeof confirmForms[b]==='function'?confirmForms[b]():confirmForms[b];let ok=await askConfirm(...cf);if(ok&&((b==='employeeform'&&editing)||b==='passwordform'))ok=await askPassword(b==='passwordform'?'untuk mengganti kata sandi akun ini.':'untuk menyimpan perubahan akun ini.');busy=false;if(!ok)return}busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
    try{
-   if(b==='filterform'){sort=v.sort;available=fd.has('available');close();render();if(page==='kasir')catalogSwap();return}
+   if(b==='filterform'){sort=v.sort||'default';available=v.stockmode==='available';close();render();if(page==='kasir')catalogSwap();return}
    if(b==='discountform'){discount=Number(v.discount);close();updateCart();return}
    if(b==='paymentform'){const {total}=totals(),paid=Number(v.paid);pendingPay={id:orderId,items:totals().lines.map(({p,qty})=>({id:p.id,qty,price:p.price})),discount,paid,method:v.method};modal('Selesaikan pembayaran?','<p class="note">Pastikan pesanan dan nominal sudah benar sebelum menyelesaikan pembayaran.</p>'+line('Metode',v.method)+line('Total pembayaran',rp(total))+line('Uang diterima',rp(paid))+line('Kembalian',rp(paid-total))+'<p class="error" role="alert"></p><div class="actions">'+btn('pay','Kembali')+btn('confirmpay','Selesaikan','check','dark')+'</div>');return}
    if(b==='unlockform'){try{await db.login(data.me.username||data.me.employee_code,v.password)}catch(e){throw /jaringan|fetch|network|timeout|50\d/i.test(e.message)?e:Error('Kata sandi salah.')}if(unlockKind==='db')dbUnlocked=true;const go=afterUnlock;afterUnlock=null;close();go?.();return}
