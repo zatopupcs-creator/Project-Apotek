@@ -1,5 +1,4 @@
 const ApotekPdf = (() => {
-  // Lebar huruf Helvetica (per 1000) untuk ASCII 32–126.
   const W=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
   const clean=s=>String(s??'').replace(/[–—]/g,'-').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/→/g,'->').replace(/×/g,'x').replace(/[^\x20-\x7E\u00A0-\u00FF]/g,'?');
   const width=(s,size,bold)=>{let w=0;for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);w+=c>=32&&c<=126?W[c-32]:556}return w*size/1000*(bold?1.06:1)};
@@ -36,7 +35,6 @@ const ApotekPdf = (() => {
    text(m.brand,M,y-12,11,true,'left',.35);y-=16;
    text('Periode: '+m.period,M,y-12,9,false,'left',.35);y-=13;
    text('Dicetak: '+m.printed,M,y-12,9,false,'left',.35);y-=20;
-   // Ringkasan
    const cw=CW/4;
    m.stats.forEach(([l,v],i)=>{
     const col=i%4,row=Math.floor(i/4),x=M+col*cw,top=y-row*46;
