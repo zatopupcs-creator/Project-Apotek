@@ -64,6 +64,14 @@ const ApotekManagement = (() => {
    return d.sales.filter(s=>{const t=new Date(s.at).getTime();return t>=a&&t<=b});
   }
   const rangeText=()=>mg.preset==='semua'||!mg.from?'Semua tanggal':ApotekDates.label(mg.from)+' → '+ApotekDates.label(mg.to);
+  // versi ringkas untuk HP, mis. "1 Nov – 30 Nov 2026"
+  const rangeShort=()=>{
+   if(mg.preset==='semua'||!mg.from)return 'Semua tanggal';
+   const D=ApotekDates,f=mg.from,t=mg.to||mg.from,fd=f.slice(0,10),td=t.slice(0,10),ft=f.slice(11,16),tt=t.slice(11,16);
+   const p=D.parse(fd),q=D.parse(td),dm=x=>x.d+' '+D.SHORT[x.m],full=(!ft||ft==='00:00')&&(!tt||tt==='23:59');
+   if(full)return fd===td?dm(p)+' '+p.y:p.y===q.y?dm(p)+' – '+dm(q)+' '+q.y:dm(p)+' '+p.y+' – '+dm(q)+' '+q.y;
+   return dm(p)+(p.y===q.y?'':' '+p.y)+', '+ft+' – '+dm(q)+' '+q.y+', '+tt;
+  };
   function aggregate(sales){let a={total:0,cost:0,discount:0,qty:0,sub:0},products=new Map(),groups=new Map(),methods=new Map();
    for(const s of sales){a.total+=s.total;a.cost+=s.cost;a.discount+=s.discount;a.sub+=s.subtotal;methods.set(s.method,(methods.get(s.method)||0)+s.total);
    const key=atDate(s.at).slice(0,({jam:13,hari:10,bulan:7,tahun:4}[mg.period]));groups.set(key,(groups.get(key)||0)+s.total);
@@ -78,7 +86,7 @@ const ApotekManagement = (() => {
    let sales=filtered(d),{a,products,groups,methods}=aggregate(sales);
    const period='hari';
    const first=d.sales.reduce((n,x)=>Math.min(n,new Date(x.at).getTime()),Infinity),since=Number.isFinite(first)?ApotekDates.wall(first).slice(0,10):'';
-   const rangeBtn='<div class="fieldbox"><span>Rentang waktu</span><button type="button" class="control selbtn rangebtn" data-dp="range" data-since="'+h(since)+'" aria-haspopup="dialog">'+icon('calendar',17)+'<span>'+h(rangeText())+'</span>'+icon('down',16)+'</button></div>';
+   const rangeBtn='<div class="fieldbox"><span>Rentang waktu</span><button type="button" class="control selbtn rangebtn" data-dp="range" data-since="'+h(since)+'" aria-haspopup="dialog">'+icon('calendar',17)+'<span><span class="dlong">'+h(rangeText())+'</span><span class="dshort">'+h(rangeShort())+'</span></span>'+icon('down',16)+'</button></div>';
    const max=Math.max(1,...groups.values());const oneDay=new Set([...groups.keys()].map(k=>k.slice(0,10))).size<2;let bars=[...groups].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>'<div class="barrow"><span>'+h(period==='jam'?(oneDay?'':k.slice(8,10)+'/'+k.slice(5,7)+' ')+k.slice(11,13)+'.00':k)+'</span><div class="track"><i style="width:'+v/max*100+'%"></i></div><b>'+rp(v)+'</b></div>').join('');
    const stats=[['Penjualan bersih',rp(a.total)],['Laba kotor',rp(a.total-a.cost)],['Transaksi',sales.length],['Produk terjual',a.qty]];
    return head('Laporan penjualan','Pantau omzet, harga pokok, dan keuntungan apotek.',btn('export','Ekspor','download'))+'<div class="stack"><div class="panel reportfilters">'+rangeBtn+'</div><div class="stats">'+stats.map(([l,v])=>'<div class="stat"><span>'+l+'</span><b>'+v+'</b></div>').join('')+'</div><div class="panel"><h2>Penjualan per '+period+'</h2>'+(bars?'<div class="rangebars">'+bars+'</div>':empty('Belum ada penjualan pada periode ini'))+'</div><div class="split"><div class="panel"><div class="panelhead"><h2>Rincian penjualan</h2></div>'+line('Penjualan sebelum diskon',rp(a.sub))+line('Diskon',rp(a.discount))+line('Harga pokok penjualan',rp(a.cost))+line('Laba kotor',rp(a.total-a.cost))+line('Margin kotor',a.total?((a.total-a.cost)/a.total*100).toFixed(1)+'%':'—')+'</div><div class="panel"><div class="panelhead"><h2>Metode pembayaran</h2></div>'+([...methods].map(([m,v])=>line(m,rp(v))).join('')||'<span class="small">Belum ada pembayaran.</span>')+'</div></div><div class="panel"><div class="panelhead"><h2>Produk terlaris</h2></div>'+(products.size?table(['Produk','Jumlah terjual','Penjualan sebelum diskon','Harga awal','Harga akhir','Untung'],[...products.values()].sort((a,b)=>b.qty-a.qty).map(p=>row(h(p.name),p.qty,rp(p.sub),rp(Math.round(p.cost)),rp(Math.round(p.final)),'<b class="'+(p.final-p.cost<0?'lowtext':'')+'">'+rp(Math.round(p.final-p.cost))+'</b>'))).replace('class="tablewrap"','class="tablewrap nums"'):empty('Belum ada produk terjual'))+'</div></div>';
