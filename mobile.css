@@ -264,3 +264,9 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
 .modalbody.in{animation:modalbodyin .22s ease}
 @keyframes modalbodyin{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.modalbody.in{animation:none}.skm{animation:none}}
+
+/* Popup konfirmasi kata sandi */
+.askdlg .askpw{margin:16px 0 2px;text-align:left}
+.askdlg .askpw .field{display:grid;gap:7px;text-align:left}
+.askdlg .askpw .error{margin:8px 0 0;text-align:left;min-height:0}
+.askdlg .askpw .error:empty{display:none}
