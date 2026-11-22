@@ -200,3 +200,20 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{transition:none!impo
 .sk-user div i{width:92px;height:14px}
 .sk-user div i+i{width:60px;height:12px}
 .sk-logout{height:68px;border-radius:16px}
+.signin-brand{display:block;width:92px;height:92px;object-fit:contain;margin:0 auto 18px;border-radius:22px}
+.floatfield{position:relative;display:block}
+.floatfield .inputicon{display:block}
+.floatfield label{position:absolute;left:46px;top:50%;transform:translateY(-50%);padding:0 6px;margin-left:-6px;color:#6b7280;font-size:1rem;font-weight:400;line-height:1.2;pointer-events:none;background:#fff;transition:top .18s ease,left .18s ease,font-size .18s ease,color .18s ease,font-weight .18s ease}
+.floatfield input:focus~label,.floatfield input:not(:placeholder-shown)~label,.floatfield input:-webkit-autofill~label{top:0;left:18px;font-size:.78rem;font-weight:600;color:#202630}
+.floatfield .control{background:#fff}
+.floatfield .control:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #fff inset;-webkit-text-fill-color:#202630}
+.signin-form .error{min-height:1.5em;margin:12px 0 18px}
+.signin-form .error:not(:empty){animation:shake .4s ease}
+.askdlg{width:min(400px,calc(100vw - 32px));padding:30px 26px 24px;text-align:center;border:0;border-radius:22px;box-shadow:0 24px 80px #1a24363d}
+.askdlg::backdrop{background:#17212e66;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.askdlg.closing{animation:fadeout .17s ease forwards}
+.askicon{display:grid;place-items:center;width:60px;height:60px;margin:0 auto 14px;border-radius:50%;background:#eef0f4;color:#202630}
+.askdlg h2{margin:0 0 8px}
+.askdlg p{margin:0;color:#68717e;line-height:1.5}
+.askdlg .actions{justify-content:center;margin-top:24px}
+.askdlg .actions .btn{flex:1;justify-content:center;min-height:46px}
