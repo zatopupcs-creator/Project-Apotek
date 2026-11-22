@@ -131,7 +131,11 @@
    businessform:['Simpan perubahan?','Identitas apotek dan isi struk akan diperbarui.','Simpan','check'],
    configform:['Simpan koneksi database?','Koneksi baru akan dipakai dan Anda perlu masuk kembali.','Simpan','database'],
    employeeform:['Simpan akun?','Data akun login ini akan disimpan.','Simpan','check'],
-   passwordform:['Simpan kata sandi?','Kata sandi akun ini akan diganti.','Simpan','lock']
+   passwordform:['Simpan kata sandi?','Kata sandi akun ini akan diganti.','Simpan','lock'],
+   productform:()=>editing?['Simpan perubahan produk?','Nama, harga, dan stok produk ini akan diperbarui.','Simpan','check']:['Tambah produk baru?','Produk baru akan ditambahkan ke daftar stok.','Tambah','plus'],
+   supplierform:()=>editing?['Simpan perubahan suplier?','Data suplier ini akan diperbarui.','Simpan','check']:['Tambah suplier baru?','Suplier baru akan ditambahkan ke daftar.','Tambah','plus'],
+   discountform:['Terapkan diskon?','Potongan harga akan dikurangkan dari total pembayaran.','Terapkan','check'],
+   ownerform:['Buat akun pemilik?','Akun ini akan dipakai untuk masuk dan mengelola data apotek.','Buat akun','user']
   };
   let askOpen=null;
   function askConfirm(title,text,okLabel='Ya',iconName='check'){
@@ -191,7 +195,7 @@
    case 'password':if(owner()){
     editing=data.staff.find(s=>s.id===id);if(editing)modal('Atur kata sandi',passwordForm(editing));
    }break;
-   case 'clearlogo':{const f=$('#businessform');if(f){draftLogo='';f.elements.logoFile.value='';updateLogoTile('');$('#receipt-preview').innerHTML=receiptPreview(receiptValues(f,''))}break}
+   case 'clearlogo':{if(!await askConfirm('Hapus logo?','Logo akan dilepas dari website dan struk setelah pengaturan disimpan.','Hapus','trash'))break;const f=$('#businessform');if(f){draftLogo='';f.elements.logoFile.value='';updateLogoTile('');$('#receipt-preview').innerHTML=receiptPreview(receiptValues(f,''))}break}
    case 'nav':nav(id);break;case 'home':if(data)nav(Object.keys(db.menus).find(allowed));break;
    case 'account':selectMenu();account();break;case 'close':close();break;
    case 'category':category=id;render();catalogSwap();break;case 'add':case 'minus':{if(a==='minus'&&cart[id]===1&&!pending&&product(id)){askRemove(id);break}const before=totals().qty;changeQty(id,a);if(a==='add'&&button.closest('.card')&&totals().qty>before)cartFx(button);break}
@@ -202,12 +206,12 @@
    case 'filter':modal('Filter produk','<form id="filterform"><div class="stack">'+field('Urutkan produk','sort',sort,{items:[['default','Urutan katalog'],['name','Nama A–Z'],['low','Harga terendah'],['high','Harga tertinggi']]})+'<label class="checkline"><input type="checkbox" name="available" '+(available?'checked':'')+'>Hanya produk dengan stok tersedia</label></div>'+formEnd('Terapkan filter')+'</form>');break;
    case 'discount':if(!pending)modal('Diskon transaksi','<form id="discountform">'+field('Potongan harga (Rp)','discount',discount,{type:'number',required:true,min:0,extra:'step="1" max="'+totals().sub+'"'})+formEnd('Terapkan diskon')+'</form>');break;
    case 'pay':payment();break;case 'retry':busy=true;await finishPayment(JSON.parse(sessionStorage.getItem(cartKey+'.payment')));break;
-   case 'receipt':showReceipt(data.sales.find(s=>s.id===id));break;case 'print':busy=true;await doPrint();break;
+   case 'receipt':showReceipt(data.sales.find(s=>s.id===id));break;case 'print':if(await askConfirm('Cetak struk?','Struk akan dikirim ke dialog cetak browser.','Cetak','print')){busy=true;await doPrint()}break;
    case 'deleteproduct':{const p=data.products.find(x=>x.id===id);if(p)modal('Hapus produk','<p class="note">Produk <b>'+h(p.name)+'</b> akan dihapus permanen dari daftar stok. Riwayat transaksi yang sudah ada tidak berubah.</p><p class="error" role="alert"></p><div class="actions">'+btn('close','Batal')+btn('confirmdelete','Hapus','trash','dark',p.id)+'</div>');break}
    case 'confirmdelete':{const p=data.products.find(x=>x.id===id);if(!p)break;busy=true;await db.remove('products',p.id,p.rev);close();await refresh();feedback('Produk dihapus.');break}
    case 'product':case 'supplier':case 'employee':edit(a,id);break;
    case 'contact':{let s=data.suppliers.find(s=>s.id===id);modal(s.name,contact(s,data.products)+(allowed('suplier')?'<div class="actions">'+btn('supplier','Edit suplier','edit','',s.id)+'</div>':''));break}
-   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':exportCsv(data);close();break;case 'export-pdf':exportPdf(data);close();break;case 'tab':settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';render();break;case 'opensettings':close();nav('pengaturan');break;
+   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'tab':settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';render();break;case 'opensettings':close();nav('pengaturan');break;
    case 'connection':if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
@@ -216,7 +220,7 @@
    }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;button.classList.remove('loading');if(a==='test')button.disabled=false}
   });
   document.addEventListener('submit',async e=>{
-   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;if(confirmForms[b]){busy=true;const ok=await askConfirm(...confirmForms[b]);busy=false;if(!ok)return}busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
+   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;if(confirmForms[b]){busy=true;const cf=typeof confirmForms[b]==='function'?confirmForms[b]():confirmForms[b];const ok=await askConfirm(...cf);busy=false;if(!ok)return}busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
    try{
    if(b==='filterform'){sort=v.sort;available=fd.has('available');close();render();if(page==='kasir')catalogSwap();return}
    if(b==='discountform'){discount=Number(v.discount);close();updateCart();return}
