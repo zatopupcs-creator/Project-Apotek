@@ -9,7 +9,6 @@ const ApotekDates = (() => {
   const monthDays=(y,m)=>new Date(Date.UTC(y,m+1,0)).getUTCDate();
   const wall=ms=>new Date(ms+7*3600000).toISOString().slice(0,16);
   const nowWall=()=>wall(Date.now());
-  // Label dari waktu dinding WIB: "2026-11-21" atau "2026-11-21T00:00".
   function label(v){
    if(!v)return '';const {y,m,d}=parse(v);
    return d+' '+SHORT[m]+' '+y+(String(v).length>10?' '+String(v).slice(11,16):'');
