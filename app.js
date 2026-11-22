@@ -7,13 +7,57 @@
   const $=s=>document.querySelector(s),dlg=$('#dialog');
   let data,page=location.hash.slice(1)||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
   let brand={name:'Bee Farma',logo:''},draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
+  if(page==='keranjang')page='kasir';
+  const mq=matchMedia('(max-width:720px)');let cartPushed=false;
+  const cartPageOpen=()=>Boolean(data&&page==='kasir'&&mq.matches&&location.hash==='#keranjang');
+  const syncCartPage=()=>document.body.classList.toggle('cartpage',cartPageOpen());
+  function openCartPage(){if(!mq.matches){$('#cart')?.scrollIntoView({behavior:'smooth'});return}cartPushed=true;location.hash='keranjang';syncCartPage();$('#cart')?.scrollTo?.(0,0)}
+  function leaveCart(){if(!cartPageOpen())return;if(cartPushed){cartPushed=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search+'#kasir');syncCartPage()}}
+  const backArrow='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
   const owner=()=>Boolean(data?.me?.owner);
   const allowed=m=>Boolean(data&&Object.hasOwn(db.menus,m)&&(owner()||m!=='pegawai'&&data.me.menus.includes(m)));
   const product=id=>data.products.find(p=>p.id===id);
   const asForm=form=>Object.fromEntries(new FormData(form));
   const feedback=(msg,kind='ok')=>{const t=$('#toast');t.className=kind==='error'?'error':'';t.innerHTML=(kind==='error'?'<span class="okwrap err"><svg class="okmark" viewBox="0 0 52 52" aria-hidden="true"><circle class="okc" cx="26" cy="26" r="23"/><path class="xp1" d="M18 18l16 16"/><path class="xp2" d="M34 18L18 34"/></svg></span>':'<span class="okwrap"><svg class="okmark" viewBox="0 0 52 52" aria-hidden="true"><circle class="okc" cx="26" cy="26" r="23"/><path class="okp" d="M15 27l8 8 15-17"/></svg></span>')+'<span>'+h(msg)+'</span>';clearTimeout(timer);timer=setTimeout(()=>{t.className='';t.innerHTML=''},3300)};
-  function modal(title,body){dlg.innerHTML='<div class="modalhead"><h2>'+h(title)+'</h2>'+ib('close','Tutup','close')+'</div><div class="modalbody">'+body+'</div>';if(!dlg.open)dlg.showModal()}
-  function close(){if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
+  // kerangka loading (skeleton) otomatis dibuat dari isi popup yang akan dibuka
+  function skeletonize(html){
+   const t=document.createElement('template');t.innerHTML=html;
+   const INLINE=['B','STRONG','SPAN','SMALL','EM','A','I','BR','CODE'];
+   const mk=(cls,w,hgt)=>{const i=document.createElement('i');i.className='sk '+cls;if(w)i.style.width=w;if(hgt)i.style.height=hgt;return i};
+   const px=(n,lo,hi)=>Math.min(hi,Math.max(lo,Math.round(n*7.5)))+'px';
+   const own=el=>[...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim();
+   const bars=len=>{const n=Math.min(3,Math.max(1,Math.ceil(len/52))),f=document.createDocumentFragment();for(let k=0;k<n;k++)f.append(mk('sk-line',k===n-1&&n>1?'55%':'100%'));return f};
+   const walk=el=>{
+    for(const n of [...el.childNodes])if(n.nodeType===3&&n.textContent.trim()&&el.children.length){const b=mk('sk-line',px(n.textContent.trim().length,40,220));n.replaceWith(b)}
+    for(const c of [...el.children]){
+     const tag=c.tagName,text=c.textContent.trim();
+     if(['STYLE','SCRIPT','TEMPLATE'].includes(tag)||c.matches('.error,[hidden],.sr')){c.remove();continue}
+     if(tag==='INPUT'&&c.type==='hidden'){c.remove();continue}
+     if(c.matches('label.checkline')){const w=document.createElement('div');w.className=c.className;w.style.cssText='display:flex;gap:10px;align-items:center';w.append(mk('','20px','20px'),mk('sk-line',px(text.length,80,260)));c.replaceWith(w);continue}
+     if(c.matches('.field')||(tag==='LABEL'&&c.querySelector('input,select,textarea,button'))){const w=document.createElement('div');w.className=c.className;w.append(mk('sk-line',px(own(c).length||10,50,170)),mk('sk-input',null,c.querySelector('textarea')?'96px':null));c.replaceWith(w);continue}
+     if(['INPUT','SELECT','TEXTAREA'].includes(tag)){c.replaceWith(mk('sk-input',null,tag==='TEXTAREA'?'96px':null));continue}
+     if(tag==='BUTTON'||c.matches('.btn,.linkbtn')){c.replaceWith(c.classList.contains('iconbtn')?mk('sk-icon'):mk('sk-btn-s',px(text.length,96,210)));continue}
+     if(['IMG','svg','SVG','CANVAS'].includes(tag)){c.replaceWith(mk('sk-thumb'));continue}
+     if(c.classList.contains('line')){[...c.children].forEach(k=>k.replaceWith(mk('sk-line',px(k.textContent.trim().length,50,k.tagName==='STRONG'?150:130),k.tagName==='STRONG'?'18px':null)));continue}
+     if(!c.children.length){if(text){const block=['P','DIV','LI','TD','H1','H2','H3','H4'].includes(tag);c.replaceChildren(block&&text.length>40?bars(text.length):mk('sk-line',px(text.length,30,block?240:150)))}continue}
+     if(text&&[...c.children].every(k=>INLINE.includes(k.tagName))){const block=['P','DIV','LI','TD'].includes(tag);c.replaceChildren(block?bars(text.length):mk('sk-line',px(text.length,30,150)));continue}
+     walk(c)
+    }
+   };
+   walk(t.content);
+   return t.innerHTML;
+  }
+  let modalSeq=0;
+  function modal(title,body){
+   const seq=++modalSeq,wasOpen=dlg.open;let sk;
+   try{sk=skeletonize(body)}catch{sk=''}
+   const head='<div class="modalhead"><h2>'+h(title)+'</h2>'+ib('close','Tutup','close')+'</div>';
+   if(!sk){dlg.innerHTML=head+'<div class="modalbody">'+body+'</div>';if(!dlg.open)dlg.showModal();return}
+   dlg.innerHTML=head+'<div class="modalbody sk-mode" aria-busy="true"><span class="sr" role="status">Memuat…</span>'+sk+'</div>';
+   if(!dlg.open)dlg.showModal();
+   setTimeout(()=>{if(seq!==modalSeq||!dlg.open)return;const mb=dlg.querySelector('.modalbody');if(!mb)return;mb.className='modalbody in';mb.removeAttribute('aria-busy');mb.innerHTML=body},wasOpen?260:420);
+  }
+  function close(){modalSeq++;if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
   function loadDraft(){
    const key='figiha.cart.'+(db.config()?.url||'demo')+'.'+data.me.id;
    if(key===cartKey)return;cartKey=key;const draft=JSON.parse(sessionStorage.getItem(key)||'{}');cart=draft.cart||{};discount=draft.discount||0;orderId=draft.id||db.uuid();pending=Boolean(draft.pending);
@@ -49,7 +93,7 @@
    }
   }
   function nav(m){
-   if(!allowed(m))return;selectMenu();page=m;mg.search='';draftLogo=data.settings.logo||'';
+   if(!allowed(m))return;selectMenu();cartPushed=false;page=m;mg.search='';draftLogo=data.settings.logo||'';
    if(location.hash!=='#'+m)location.hash=m;render();
   }
   function render(){
@@ -57,6 +101,7 @@
    document.title=(data?db.menus[page]||'Akun':'Masuk')+' · '+(brand.name||'Bee Farma');
    $('#header').className='sitehead';
    renderNavigation(data?.me,page,brand,allowed);
+   syncCartPage();
    if(!data){$('#main').innerHTML=loginView('',brand.name,brand.logo);if(authError){feedback(authError,'error');authError=''}return}
    $('#main').innerHTML=page==='kasir'?pos():page==='pengaturan'?settingsView(data,settingsTab,draftLogo):page==='noaccess'?empty('Belum ada menu yang diizinkan','Hubungi pemilik untuk mengatur akses akun Anda.'):management(page,data);
   }
@@ -87,7 +132,7 @@
    return '<div class="sectionline"><h2>Katalog produk</h2><span>'+products.length+' produk</span></div><div class="products">'+(products.map(p=>'<article class="card"><button class="photo" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambah '+h(p.name)+'" '+(!p.stock?'disabled':'')+'>'+photo(p)+'</button><div class="cardbody"><span class="tag">'+h(p.category)+'</span><h3>'+h(p.name)+'</h3><span class="productdesc">'+h(p.detail||p.sku)+'</span><div class="cardbottom"><div><span class="price">'+rp(p.price)+'</span> <span class="unit">/ '+h(p.unit.toLowerCase())+'</span></div><div class="addcol"><span class="stocktag '+(p.stock===0?'zero':p.stock<=p.minimum?'low':'')+'" data-sid="'+h(p.id)+'">Stok <span class="stocknum">'+p.stock+'</span></span><button class="square" type="button" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambahkan '+h(p.name)+' ke keranjang" '+(!p.stock?'disabled':'')+'>'+icon('plus',17)+'</button></div></div></div></article>').join('')||empty('Produk tidak ditemukan',data.products.length?'Coba kata kunci atau kategori lain.':'Tambahkan produk melalui menu Stok.'))+'</div>';
   }
   function cartView(){const {qty,sub,total,lines}=totals();
-   return '<div class="boxhead"><div class="boxname"><span class="boxicon logo"><img alt="" src="'+h(logoUrl(brand.logo)||'icon.svg')+'"></span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem" data-pid="'+h(p.id)+'"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<span>'+qty+'</span>'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button></div>';
+   return '<div class="boxhead"><div class="boxname"><button type="button" class="cartback" data-a="cartback" aria-label="Kembali ke katalog">'+backArrow+'</button><span class="boxicon logo"><img alt="" src="'+h(logoUrl(brand.logo)||'icon.svg')+'"></span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem" data-pid="'+h(p.id)+'"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<span>'+qty+'</span>'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p><button type="button" class="btn cartback-btn" data-a="cartback">Kembali ke katalog</button></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button></div>';
   }
   const mobileCart=()=>totals().qty?btn('jumpcart','Keranjang · '+rp(totals().total),'bag','primary floatcart'):'';
   function updateCart(){saveDraft();$('#cart').innerHTML=cartView();$('#mobilecart').innerHTML=mobileCart()}
@@ -216,7 +261,7 @@
   async function finishPayment(payload){
    pending=true;sessionStorage.setItem(cartKey+'.payment',JSON.stringify(payload));saveDraft();
    const before=Object.fromEntries((data?.products||[]).map(p=>[p.id,p.stock]));
-   try{const s=await db.checkout(payload.id,payload.items,payload.discount,payload.paid,payload.method);resetDraft();sessionStorage.removeItem(cartKey+'.payment');await refresh();close();stockFx(before,1700);await doneFx(s.total);feedback('Pembayaran berhasil.');showReceipt(s)}
+   try{const s=await db.checkout(payload.id,payload.items,payload.discount,payload.paid,payload.method);resetDraft();leaveCart();sessionStorage.removeItem(cartKey+'.payment');await refresh();close();stockFx(before,1700);await doneFx(s.total);feedback('Pembayaran berhasil.');showReceipt(s)}
    catch(e){if(!/jaringan|fetch|network|timeout|502|503|504/i.test(e.message)){pending=false;saveDraft();sessionStorage.removeItem(cartKey+'.payment')}throw e}
   }
   function err(e,form){if(form?.id==='loginform'){feedback(e.message,'error');return}let el=form?.querySelector('.error')||(dlg.open?dlg.querySelector('.error'):null);if(el)el.textContent=e.message;else feedback(e.message,'error')}
@@ -241,7 +286,7 @@
    case 'remove':{if(pending||!product(id)){changeQty(id,a);break}askRemove(id);break}
    case 'confirmpay':busy=true;await finishPayment(pendingPay);break;
    case 'confirmremove':{close();if(!pending){busy=true;await trashFx([...document.querySelectorAll('#cart .cartitem')].find(r=>r.dataset.pid===id))}changeQty(id,'remove');if(!cart[id])feedback('Produk dihapus dari keranjang.');break}
-   case 'jumpcart':$('#cart').scrollIntoView({behavior:'smooth'});break;
+   case 'jumpcart':openCartPage();break;case 'cartback':leaveCart();break;
    case 'filter':modal('Filter produk','<form id="filterform"><div class="stack">'+field('Urutkan produk','sort',sort,{items:[['default','Urutan katalog'],['name','Nama A–Z'],['low','Harga terendah'],['high','Harga tertinggi']]})+'<label class="checkline"><input type="checkbox" name="available" '+(available?'checked':'')+'>Hanya produk dengan stok tersedia</label></div>'+formEnd('Terapkan filter')+'</form>');break;
    case 'discount':if(!pending)modal('Diskon transaksi','<form id="discountform">'+field('Potongan harga (Rp)','discount',discount,{type:'number',required:true,min:0,extra:'step="1" max="'+totals().sub+'"'})+formEnd('Terapkan diskon')+'</form>');break;
    case 'pay':payment();break;case 'retry':busy=true;await finishPayment(JSON.parse(sessionStorage.getItem(cartKey+'.payment')));break;
@@ -308,7 +353,8 @@
    if(t.name==='period'){mg.period=t.value;render()}
    if(t.name==='method'){let paid=t.form.elements.paid;paid.value=totals().total;paid.readOnly=t.value!=='Tunai';$('#change').innerHTML=line('Kembalian',rp(0))}});
   document.addEventListener('dp-range',e=>{Object.assign(mg,e.detail);if(data&&page==='laporan')render()});
-  window.addEventListener('hashchange',()=>{let m=location.hash.slice(1);if(allowed(m)){page=m;render()}});
+  window.addEventListener('hashchange',()=>{let m=location.hash.slice(1);if(m==='keranjang'||m===page||!allowed(m)){syncCartPage();return}page=m;render()});
+  mq.addEventListener?.('change',syncCartPage);
   window.addEventListener('storage',e=>{
    if(e.key==='figiha.supabase'){db.logout();cartKey='';authError='';refresh();return}
    if(!db.config()&&e.key==='figiha.demo.v1'){if(!data||!dlg.open)refresh();else db.state().then(s=>{if(!s.me.owner&&(!s.me.menus.includes(page)||page==='pegawai')){close();refresh()}}).catch(()=>refresh())}
