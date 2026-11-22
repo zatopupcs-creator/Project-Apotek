@@ -2,7 +2,7 @@
   const db = ApotekData;
   const {h,rp,date,nomor,head,btn,ib,field,icon,line,ticket,photo,search,empty,formEnd,logoUrl} = ApotekUI;
   const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,exportPdf,exportChooser,mg} = ApotekManagement;
-  const {connectionView,loginView,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
+  const {connectionView,loginView,updateLoginBrand,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
   const {renderNavigation,selectMenu,toggleMenu,closeMenu,preload} = ApotekNavigation;
   const $=s=>document.querySelector(s),dlg=$('#dialog');
   let data,page=location.hash.slice(1)||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
@@ -33,7 +33,7 @@
    const id=++refreshId;
    if(!db.session()){
     data=null;currentSale=null;$('#print').innerHTML='';close();render();
-    try{const publicBrand=await db.branding();if(id===refreshId&&publicBrand&&!data){const changed=publicBrand.name!==brand.name||publicBrand.logo!==brand.logo;brand=publicBrand;if(changed&&!document.querySelector('#loginform input:not(:placeholder-shown)'))render();else renderNavigation(null,page,brand,allowed)}}
+    try{const publicBrand=await db.branding();if(id===refreshId&&publicBrand&&!data){const changed=publicBrand.name!==brand.name||publicBrand.logo!==brand.logo;brand=publicBrand;if(changed&&!document.querySelector('#loginform input:not(:placeholder-shown)'))render();else{renderNavigation(null,page,brand,allowed);updateLoginBrand(brand.name,brand.logo)}}}
     catch{}
     return;
    }
@@ -57,7 +57,7 @@
    document.title=(data?db.menus[page]||'Akun':'Masuk')+' · '+(brand.name||'Bee Farma');
    $('#header').className='sitehead';
    renderNavigation(data?.me,page,brand,allowed);
-   if(!data){$('#main').innerHTML=loginView(authError,brand.name,brand.logo);return}
+   if(!data){$('#main').innerHTML=loginView('',brand.name,brand.logo);if(authError){feedback(authError,'error');authError=''}return}
    $('#main').innerHTML=page==='kasir'?pos():page==='pengaturan'?settingsView(data,settingsTab,draftLogo):page==='noaccess'?empty('Belum ada menu yang diizinkan','Hubungi pemilik untuk mengatur akses akun Anda.'):management(page,data);
   }
   function signOut(){
@@ -176,7 +176,7 @@
    try{const s=await db.checkout(payload.id,payload.items,payload.discount,payload.paid,payload.method);resetDraft();sessionStorage.removeItem(cartKey+'.payment');await refresh();close();stockFx(before,1700);await doneFx(s.total);feedback('Pembayaran berhasil.');showReceipt(s)}
    catch(e){if(!/jaringan|fetch|network|timeout|502|503|504/i.test(e.message)){pending=false;saveDraft();sessionStorage.removeItem(cartKey+'.payment')}throw e}
   }
-  function err(e,form){let el=form?.querySelector('.error')||(dlg.open?dlg.querySelector('.error'):null);if(el)el.textContent=e.message;else feedback(e.message,'error')}
+  function err(e,form){if(form?.id==='loginform'){feedback(e.message,'error');return}let el=form?.querySelector('.error')||(dlg.open?dlg.querySelector('.error'):null);if(el)el.textContent=e.message;else feedback(e.message,'error')}
   document.addEventListener('click',e=>{
    const t=e.target.closest('.pwtoggle');if(!t)return;
    const input=t.parentElement.querySelector('input'),show=input.type==='password';
