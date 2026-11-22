@@ -243,6 +243,27 @@
    });
    return askOpen;
   }
+  // minta kata sandi akun yang sedang login sebelum perubahan akun disimpan (dialog terpisah, form di bawahnya tetap utuh)
+  function askPassword(text){
+   return new Promise(resolve=>{
+    const d=document.createElement('dialog');d.className='askdlg';
+    d.innerHTML='<span class="askicon">'+icon('lock',26)+'</span><h2>Konfirmasi kata sandi</h2><p>Masukkan kata sandi akun <b>'+h(data.me.name)+'</b> '+text+'</p><div class="askpw">'+field('Kata sandi','password','',{type:'password',placeholder:'Kata sandi akun Anda',extra:'autocomplete="current-password"'})+'<p class="error" role="alert"></p></div><div class="actions"><button type="button" class="btn" data-ask="no">Batal</button><button type="button" class="btn dark" data-ask="yes">Lanjutkan</button></div>';
+    let done=false,checking=false;
+    const input=()=>d.querySelector('input'),say=m=>{d.querySelector('.error').textContent=m};
+    const finish=v=>{if(done)return;done=true;d.classList.add('closing');setTimeout(()=>{d.close();d.remove();resolve(v)},170)};
+    const verify=async()=>{
+     if(checking)return;const pw=input().value;if(!pw){say('Isi kata sandi.');return}
+     checking=true;const yes=d.querySelector('[data-ask="yes"]');yes.classList.add('loading');yes.disabled=true;say('');
+     try{await db.login(data.me.username||data.me.employee_code,pw);finish(true)}
+     catch(e){say(/jaringan|fetch|network|timeout|50\d/i.test(e.message)?e.message:'Kata sandi salah.');input().select()}
+     finally{checking=false;yes.classList.remove('loading');yes.disabled=false}
+    };
+    d.addEventListener('click',e=>{const b=e.target.closest('[data-ask]');if(!b){if(e.target===d)finish(false);return}if(b.dataset.ask==='yes')verify();else finish(false)});
+    d.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();verify()}});
+    d.addEventListener('cancel',e=>{e.preventDefault();finish(false)});
+    document.body.append(d);d.showModal();input().focus();
+   });
+  }
   function askRemove(id){const p=product(id);modal('Hapus dari keranjang','<p class="note">Hapus <b>'+h(p.name)+'</b> dari keranjang?</p><div class="actions">'+btn('close','Batal')+btn('confirmremove','Hapus','trash','dark',id)+'</div>')}
   let pendingPay=null;
   function doneFx(total){
@@ -313,7 +334,7 @@
    }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;button.classList.remove('loading');if(a==='test')button.disabled=false}
   });
   document.addEventListener('submit',async e=>{
-   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;if(confirmForms[b]){busy=true;const cf=typeof confirmForms[b]==='function'?confirmForms[b]():confirmForms[b];const ok=await askConfirm(...cf);busy=false;if(!ok)return}busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
+   e.preventDefault();if(busy)return;const form=e.target,v=asForm(form),fd=new FormData(form),submit=e.submitter,b=form.id;if(confirmForms[b]){busy=true;const cf=typeof confirmForms[b]==='function'?confirmForms[b]():confirmForms[b];let ok=await askConfirm(...cf);if(ok&&((b==='employeeform'&&editing)||b==='passwordform'))ok=await askPassword(b==='passwordform'?'untuk mengganti kata sandi akun ini.':'untuk menyimpan perubahan akun ini.');busy=false;if(!ok)return}busy=true;if(submit){submit.disabled=true;submit.classList.add('loading')}let error=form.querySelector('.error');if(error)error.textContent='';
    try{
    if(b==='filterform'){sort=v.sort;available=fd.has('available');close();render();if(page==='kasir')catalogSwap();return}
    if(b==='discountform'){discount=Number(v.discount);close();updateCart();return}
