@@ -222,3 +222,7 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
 .signin-form .stack{display:grid;gap:clamp(16px,2.8vh,24px)}
 .signin-form .control{min-height:clamp(48px,6.6vh,58px);font-size:1rem}
 .login-submit{margin-top:clamp(18px,3.4vh,30px);min-height:clamp(48px,6.6vh,56px);font-size:1rem;letter-spacing:.01em}
+#toast .xp1,#toast .xp2{stroke-dasharray:24;stroke-dashoffset:24;animation:okdraw .25s .45s ease forwards}
+#toast .xp2{animation-delay:.65s}
+#toast .okwrap.err::before{display:none}
+@media(prefers-reduced-motion:reduce){#toast .xp1,#toast .xp2{stroke-dashoffset:0;animation:none}}
