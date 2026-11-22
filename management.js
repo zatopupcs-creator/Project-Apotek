@@ -22,10 +22,14 @@ const ApotekManagement = (() => {
    const size='<div class="selectbox pgsel"><input type="hidden" name="pgsize" value="'+mg.size+'" data-options="'+h(JSON.stringify(opts))+'"><button type="button" class="control selbtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Baris per halaman"><span>'+mg.size+'</span>'+icon('down',16)+'</button></div>';
    return '<div class="pager"><span class="pgtext">Menampilkan '+(from+1)+'–'+(from+count)+' dari '+total+' '+noun+'</span><div class="pgctrl"><span class="pglabel">Baris per halaman</span>'+size+'<div class="pgnav">'+arrow(cur-1,cur<=1,'Halaman sebelumnya',90)+nums+arrow(cur+1,cur>=pages,'Halaman berikutnya',-90)+'</div></div></div>';
   }
-  function paged(key,noun,headers,rows){
-   const size=mg.size,pages=Math.max(1,Math.ceil(rows.length/size)),cur=Math.min(Math.max(1,mg.pg[key]||1),pages),from=(cur-1)*size,slice=rows.slice(from,from+size);
+  function paginate(key,noun,items){
+   const size=mg.size,pages=Math.max(1,Math.ceil(items.length/size)),cur=Math.min(Math.max(1,mg.pg[key]||1),pages),from=(cur-1)*size,slice=items.slice(from,from+size);
    mg.pg[key]=cur;
-   return table(headers,slice)+pager(key,cur,pages,rows.length,from,slice.length,noun);
+   return {items:slice,html:pager(key,cur,pages,items.length,from,slice.length,noun)};
+  }
+  function paged(key,noun,headers,rows){
+   const p=paginate(key,noun,rows);
+   return table(headers,p.items)+p.html;
   }
   function goPage(key,n){mg.pg[key]=Math.max(1,n)}
   function management(page,d){
@@ -131,5 +135,5 @@ const ApotekManagement = (() => {
     rows:sales.map(s=>[nomor(s),date(s.at,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),s.cashier,s.method,String(s.items.reduce((n,i)=>n+i.qty,0)),rp(s.total),rp(s.total-s.cost)])};
    download(ApotekPdf.report(model),'laporan-penjualan-'+today()+'.pdf');
   }
-return { today, mg, goPage, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv, exportPdf, exportChooser };
+return { today, mg, goPage, paginate, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv, exportPdf, exportChooser };
 })();
