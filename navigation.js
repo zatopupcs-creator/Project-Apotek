@@ -6,16 +6,16 @@ const ApotekNavigation = (() => {
   const backdrop=document.getElementById('side-backdrop');
   const desktop=matchMedia('(min-width: 1000px)');
   const body=document.body;
-  let activeUser=null,isOpen=false,groupCollapsed=false;
+  let activeUser=null,isOpen=false,groupCollapsed=false,booting=false;
   const preferOpen=()=>localStorage.getItem('figiha.sidebar')!=='closed';
   function sync(){
-   const show=Boolean(activeUser&&isOpen);
-   body.classList.toggle('has-side',Boolean(activeUser));
+   const present=Boolean(activeUser||booting),show=Boolean(present&&isOpen);
+   body.classList.toggle('has-side',present);
    body.classList.toggle('side-open',show);
    body.classList.toggle('side-modal',show&&!desktop.matches);
    pane.setAttribute('aria-hidden',String(!show));
    if('inert' in pane)pane.inert=!show;
-   toggle.hidden=!activeUser;
+   toggle.hidden=!present;
    toggle.setAttribute('aria-expanded',String(show));
    toggle.title=show?'Tutup menu':'Buka menu';
    toggle.setAttribute('aria-label',toggle.title);
@@ -34,12 +34,19 @@ const ApotekNavigation = (() => {
   backdrop.addEventListener('click',()=>closeMenu(false));
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&body.classList.contains('side-modal'))closeMenu(false)});
   desktop.addEventListener('change',()=>{isOpen=Boolean(activeUser)&&desktop.matches&&preferOpen();sync()});
+  function preload(){
+   booting=true;isOpen=desktop.matches&&preferOpen();
+   body.classList.add('no-anim');
+   pane.innerHTML='<div class="snav-brand"><i class="sk sk-brandlogo"></i><i class="sk sk-brandname"></i></div><nav class="snav-scroll"><div class="snav-group"><i class="sk sk-navlabel"></i><div class="snav-items">'+Array.from({length:6},()=>'<div class="sk-navitem"><i class="sk"></i><i class="sk"></i></div>').join('')+'</div></div></nav><div class="snav-foot"><div class="sk-user"><i class="sk sk-avatar"></i><div><i class="sk"></i><i class="sk"></i></div></div><i class="sk sk-logout"></i></div>';
+   sync();
+   requestAnimationFrame(()=>requestAnimationFrame(()=>body.classList.remove('no-anim')));
+  }
   function renderNavigation(user,page,brand,can){
+   booting=false;
    const first=!activeUser&&user;activeUser=user;
    const logo=logoUrl(brand.logo)||'icon.svg';
    const name=brand.name||'Bee Farma';
    document.querySelector('link[rel="icon"]').href=logo;
-   // Header hanya dipakai pada layar masuk; setelah masuk navigasi ada di sidebar.
    document.getElementById('header').innerHTML=user?'':'<div class="headinner revised-head"><span class="brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></span></div>';
    if(!user){isOpen=false;pane.innerHTML='';sync();return}
    const links=Object.entries(menus).filter(([m])=>can(m)).map(([m,label])=>'<button type="button" class="snav-item '+(page===m?'current':'')+'" data-a="nav" data-id="'+m+'" '+(page===m?'aria-current="page"':'')+'>'+icon(m,20)+'<span>'+h(label)+'</span></button>').join('');
@@ -50,5 +57,5 @@ const ApotekNavigation = (() => {
    if(first)isOpen=desktop.matches&&preferOpen();
    sync();
   }
-return { closeMenu, selectMenu, toggleMenu, renderNavigation };
+return { closeMenu, selectMenu, toggleMenu, renderNavigation, preload };
 })();
