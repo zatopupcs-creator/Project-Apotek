@@ -19,28 +19,27 @@
   const product=id=>data.products.find(p=>p.id===id);
   const asForm=form=>Object.fromEntries(new FormData(form));
   const feedback=(msg,kind='ok')=>{const t=$('#toast');t.className=kind==='error'?'error':'';t.innerHTML=(kind==='error'?'<span class="okwrap err"><svg class="okmark" viewBox="0 0 52 52" aria-hidden="true"><circle class="okc" cx="26" cy="26" r="23"/><path class="xp1" d="M18 18l16 16"/><path class="xp2" d="M34 18L18 34"/></svg></span>':'<span class="okwrap"><svg class="okmark" viewBox="0 0 52 52" aria-hidden="true"><circle class="okc" cx="26" cy="26" r="23"/><path class="okp" d="M15 27l8 8 15-17"/></svg></span>')+'<span>'+h(msg)+'</span>';clearTimeout(timer);timer=setTimeout(()=>{t.className='';t.innerHTML=''},3300)};
-  // kerangka loading (skeleton) otomatis dibuat dari isi popup yang akan dibuka
+  // kerangka loading (skeleton): memakai elemen asli popup yang dibuat transparan + berkilau,
+  // sehingga ukuran dan posisinya persis sama dengan isi aslinya
   function skeletonize(html){
    const t=document.createElement('template');t.innerHTML=html;
-   const INLINE=['B','STRONG','SPAN','SMALL','EM','A','I','BR','CODE'];
-   const mk=(cls,w,hgt)=>{const i=document.createElement('i');i.className='sk '+cls;if(w)i.style.width=w;if(hgt)i.style.height=hgt;return i};
-   const px=(n,lo,hi)=>Math.min(hi,Math.max(lo,Math.round(n*7.5)))+'px';
-   const own=el=>[...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim();
-   const bars=len=>{const n=Math.min(3,Math.max(1,Math.ceil(len/52))),f=document.createDocumentFragment();for(let k=0;k<n;k++)f.append(mk('sk-line',k===n-1&&n>1?'55%':'100%'));return f};
+   const CTRL='input,select,textarea,button,img,svg,canvas';
+   const hasText=el=>[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());
+   const mark=c=>{
+    c.classList.add('skm');
+    if(c.tagName==='INPUT'||c.tagName==='TEXTAREA'){c.value='';c.removeAttribute('value');c.removeAttribute('placeholder')}
+    if(c.tagName==='IMG'){c.removeAttribute('src');c.removeAttribute('srcset');c.alt=''}
+   };
    const walk=el=>{
-    for(const n of [...el.childNodes])if(n.nodeType===3&&n.textContent.trim()&&el.children.length){const b=mk('sk-line',px(n.textContent.trim().length,40,220));n.replaceWith(b)}
     for(const c of [...el.children]){
-     const tag=c.tagName,text=c.textContent.trim();
-     if(['STYLE','SCRIPT','TEMPLATE'].includes(tag)||c.matches('.error,[hidden],.sr')){c.remove();continue}
-     if(tag==='INPUT'&&c.type==='hidden'){c.remove();continue}
-     if(c.matches('label.checkline')){const w=document.createElement('div');w.className=c.className;w.style.cssText='display:flex;gap:10px;align-items:center';w.append(mk('','20px','20px'),mk('sk-line',px(text.length,80,260)));c.replaceWith(w);continue}
-     if(c.matches('.field')||(tag==='LABEL'&&c.querySelector('input,select,textarea,button'))){const w=document.createElement('div');w.className=c.className;w.append(mk('sk-line',px(own(c).length||10,50,170)),mk('sk-input',null,c.querySelector('textarea')?'96px':null));c.replaceWith(w);continue}
-     if(['INPUT','SELECT','TEXTAREA'].includes(tag)){c.replaceWith(mk('sk-input',null,tag==='TEXTAREA'?'96px':null));continue}
-     if(tag==='BUTTON'||c.matches('.btn,.linkbtn')){c.replaceWith(c.classList.contains('iconbtn')?mk('sk-icon'):mk('sk-btn-s',px(text.length,96,210)));continue}
-     if(['IMG','svg','SVG','CANVAS'].includes(tag)){c.replaceWith(mk('sk-thumb'));continue}
-     if(c.classList.contains('line')){[...c.children].forEach(k=>k.replaceWith(mk('sk-line',px(k.textContent.trim().length,50,k.tagName==='STRONG'?150:130),k.tagName==='STRONG'?'18px':null)));continue}
-     if(!c.children.length){if(text){const block=['P','DIV','LI','TD','H1','H2','H3','H4'].includes(tag);c.replaceChildren(block&&text.length>40?bars(text.length):mk('sk-line',px(text.length,30,block?240:150)))}continue}
-     if(text&&[...c.children].every(k=>INLINE.includes(k.tagName))){const block=['P','DIV','LI','TD'].includes(tag);c.replaceChildren(block?bars(text.length):mk('sk-line',px(text.length,30,150)));continue}
+     if(['STYLE','SCRIPT','TEMPLATE'].includes(c.tagName)||c.matches('.sr,[hidden]')||(c.tagName==='INPUT'&&c.type==='hidden')){c.remove();continue}
+     for(const at of ['id','name','for','data-a','data-id','data-dp','autofocus','required','href','onclick'])c.removeAttribute(at);
+     c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');
+     if(c.matches(CTRL)||c.matches('.photo,.thumb,.avatar')){mark(c);continue}
+     if(hasText(c)){
+      if(!c.querySelector(CTRL)){mark(c);continue}
+      for(const n of [...c.childNodes])if(n.nodeType===3&&n.textContent.trim()){const sp=document.createElement('span');sp.className='skm';sp.textContent=n.textContent;n.replaceWith(sp)}
+     }
      walk(c)
     }
    };
@@ -53,9 +52,9 @@
    try{sk=skeletonize(body)}catch{sk=''}
    const head='<div class="modalhead"><h2>'+h(title)+'</h2>'+ib('close','Tutup','close')+'</div>';
    if(!sk){dlg.innerHTML=head+'<div class="modalbody">'+body+'</div>';if(!dlg.open)dlg.showModal();return}
-   dlg.innerHTML=head+'<div class="modalbody sk-mode" aria-busy="true"><span class="sr" role="status">Memuat…</span>'+sk+'</div>';
+   dlg.innerHTML=head+'<div class="modalbody sk-mode" aria-busy="true" inert><span class="sr" role="status">Memuat…</span>'+sk+'</div>';
    if(!dlg.open)dlg.showModal();
-   setTimeout(()=>{if(seq!==modalSeq||!dlg.open)return;const mb=dlg.querySelector('.modalbody');if(!mb)return;mb.className='modalbody in';mb.removeAttribute('aria-busy');mb.innerHTML=body},wasOpen?260:420);
+   setTimeout(()=>{if(seq!==modalSeq||!dlg.open)return;const mb=dlg.querySelector('.modalbody');if(!mb)return;mb.className='modalbody in';mb.removeAttribute('aria-busy');mb.removeAttribute('inert');mb.innerHTML=body},wasOpen?260:420);
   }
   function close(){modalSeq++;if(dlg.open)dlg.close();dlg.replaceChildren();editing=null}
   function loadDraft(){
