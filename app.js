@@ -120,6 +120,29 @@
    const anim=dot.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+dx*.45+'px,'+(dy*.45-70)+'px) scale(1)',opacity:1,offset:.45},{transform:'translate('+dx+'px,'+dy+'px) scale('+end+')',opacity:rowTarget?1:.55}],{duration:700,easing:'cubic-bezier(.45,.05,.4,1)'});
    anim.onfinish=()=>{dot.remove();if(row)row.style.opacity='';reveal();if(!rowTarget)for(const el of [mobile,$('#cart .count')])el?.animate([{transform:'scale(1)'},{transform:'scale(1.28)'},{transform:'scale(1)'}],{duration:320,easing:'ease-out'})};
   }
+  // animasi hapus: foto produk masuk ke tong sampah, lalu baris menutup
+  function trashFx(row){
+   return new Promise(resolve=>{
+    const bin=row?.querySelector('[data-a="remove"],[data-a="deleteproduct"]'),thumb=row?.querySelector('.thumb');
+    if(!row||!bin||!thumb||matchMedia('(prefers-reduced-motion: reduce)').matches||!row.getClientRects().length){resolve();return}
+    const img=thumb.querySelector('img'),from=thumb.getBoundingClientRect(),to=bin.getBoundingClientRect(),size=Math.min(42,Math.max(28,from.width));
+    const dot=document.createElement('span');dot.className='flydot';dot.style.width=dot.style.height=size+'px';dot.style.borderRadius='10px';
+    dot.style.background=img?'#fff center/cover no-repeat':'#eeece9';if(img)dot.style.backgroundImage='url("'+img.src+'")';
+    dot.style.left=from.left+from.width/2-size/2+'px';dot.style.top=from.top+from.height/2-size/2+'px';
+    document.body.append(dot);thumb.style.visibility='hidden';
+    row.animate([{opacity:1},{opacity:.45}],{duration:300,fill:'forwards'});
+    const dx=to.left+to.width/2-(from.left+from.width/2),dy=to.top+to.height/2-(from.top+from.height/2);
+    bin.animate([{transform:'rotate(0)'},{transform:'rotate(-16deg) scale(1.25)',offset:.35},{transform:'rotate(12deg) scale(1.25)',offset:.6},{transform:'rotate(0) scale(1)'}],{duration:640,delay:240,easing:'ease-in-out'});
+    bin.animate([{color:'inherit'},{color:'#d64545',offset:.4},{color:'inherit'}],{duration:760,delay:200});
+    const fly=dot.animate([{transform:'translate(0,0) scale(1) rotate(0)',opacity:1},{transform:'translate('+dx*.5+'px,'+(dy*.5-34)+'px) scale(.8) rotate(100deg)',opacity:1,offset:.5},{transform:'translate('+dx+'px,'+dy+'px) scale(.12) rotate(300deg)',opacity:.2}],{duration:560,easing:'cubic-bezier(.5,0,.75,.4)'});
+    fly.onfinish=()=>{
+     dot.remove();
+     const h0=row.offsetHeight;row.style.overflow='hidden';
+     const out=row.tagName==='TR'?row.animate([{opacity:.45,transform:'translateX(0)'},{opacity:0,transform:'translateX(-24px)'}],{duration:260,fill:'forwards'}):row.animate([{height:h0+'px',opacity:.45},{height:'0px',opacity:0,paddingTop:'0px',paddingBottom:'0px'}],{duration:280,easing:'ease-in',fill:'forwards'});
+     out.onfinish=resolve;
+    };
+   });
+  }
   function changeQty(id,mode){const p=product(id);if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.','error');return}let n=mode==='remove'?0:(cart[id]||0)+(mode==='add'?1:-1);if(n>p.stock){feedback('Jumlah melebihi stok yang tersedia.','error');return}if(n<=0)delete cart[id];else cart[id]=n;discount=Math.min(discount,totals().sub);updateCart()}
   function payment(){const {sub,total,qty}=totals();if(!qty)return;
    if(pending){const prev=JSON.parse(sessionStorage.getItem(cartKey+'.payment')||'null');if(prev){modal('Periksa pembayaran','<p class="note">Pembayaran sebelumnya belum terkonfirmasi. Tekan periksa untuk mengambil struk atau menyelesaikan transaksi dengan nomor yang sama.</p>'+btn('retry','Periksa transaksi','receipt','primary')+'<p class="error"></p>');return}}
@@ -217,14 +240,14 @@
    case 'category':category=id;render();catalogSwap();break;case 'add':case 'minus':{if(a==='minus'&&cart[id]===1&&!pending&&product(id)){askRemove(id);break}const before=totals().qty,had=(cart[id]||0)>0;changeQty(id,a);if(a==='add'&&button.closest('.card')&&totals().qty>before)cartFx(button,id,!had);break}
    case 'remove':{if(pending||!product(id)){changeQty(id,a);break}askRemove(id);break}
    case 'confirmpay':busy=true;await finishPayment(pendingPay);break;
-   case 'confirmremove':changeQty(id,'remove');close();if(!cart[id])feedback('Produk dihapus dari keranjang.');break;
+   case 'confirmremove':{close();if(!pending){busy=true;await trashFx([...document.querySelectorAll('#cart .cartitem')].find(r=>r.dataset.pid===id))}changeQty(id,'remove');if(!cart[id])feedback('Produk dihapus dari keranjang.');break}
    case 'jumpcart':$('#cart').scrollIntoView({behavior:'smooth'});break;
    case 'filter':modal('Filter produk','<form id="filterform"><div class="stack">'+field('Urutkan produk','sort',sort,{items:[['default','Urutan katalog'],['name','Nama A–Z'],['low','Harga terendah'],['high','Harga tertinggi']]})+'<label class="checkline"><input type="checkbox" name="available" '+(available?'checked':'')+'>Hanya produk dengan stok tersedia</label></div>'+formEnd('Terapkan filter')+'</form>');break;
    case 'discount':if(!pending)modal('Diskon transaksi','<form id="discountform">'+field('Potongan harga (Rp)','discount',discount,{type:'number',required:true,min:0,extra:'step="1" max="'+totals().sub+'"'})+formEnd('Terapkan diskon')+'</form>');break;
    case 'pay':payment();break;case 'retry':busy=true;await finishPayment(JSON.parse(sessionStorage.getItem(cartKey+'.payment')));break;
    case 'receipt':showReceipt(data.sales.find(s=>s.id===id));break;case 'print':if(await askConfirm('Cetak struk?','Struk akan dikirim ke dialog cetak browser.','Cetak','print')){busy=true;await doPrint()}break;
    case 'deleteproduct':{const p=data.products.find(x=>x.id===id);if(p)modal('Hapus produk','<p class="note">Produk <b>'+h(p.name)+'</b> akan dihapus permanen dari daftar stok. Riwayat transaksi yang sudah ada tidak berubah.</p><p class="error" role="alert"></p><div class="actions">'+btn('close','Batal')+btn('confirmdelete','Hapus','trash','dark',p.id)+'</div>');break}
-   case 'confirmdelete':{const p=data.products.find(x=>x.id===id);if(!p)break;busy=true;await db.remove('products',p.id,p.rev);close();await refresh();feedback('Produk dihapus.');break}
+   case 'confirmdelete':{const p=data.products.find(x=>x.id===id);if(!p)break;busy=true;await db.remove('products',p.id,p.rev);close();await trashFx([...document.querySelectorAll('#mgrows tr')].find(r=>r.querySelector('[data-a="deleteproduct"]')?.dataset.id===p.id));await refresh();feedback('Produk dihapus.');break}
    case 'product':case 'supplier':case 'employee':edit(a,id);break;
    case 'contact':{let s=data.suppliers.find(s=>s.id===id);modal(s.name,contact(s,data.products)+(allowed('suplier')?'<div class="actions">'+btn('supplier','Edit suplier','edit','',s.id)+'</div>':''));break}
    case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'tab':settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';render();break;case 'opensettings':close();nav('pengaturan');break;
