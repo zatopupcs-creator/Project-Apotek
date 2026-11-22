@@ -207,7 +207,7 @@ body.no-anim *,body.no-anim *::before,body.no-anim *::after{transition:none!impo
 .floatfield input:focus~label,.floatfield input:not(:placeholder-shown)~label,.floatfield input:-webkit-autofill~label{top:0;left:18px;font-size:.78rem;font-weight:600;color:#202630}
 .floatfield .control{background:#fff}
 .floatfield .control:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #fff inset;-webkit-text-fill-color:#202630}
-.signin-form .error{min-height:1.5em;margin:12px 0 18px}
+.signin-form .error,.signin-form .error:empty{display:block;min-height:1.5em;margin:12px 0 18px}
 .signin-form .error:not(:empty){animation:shake .4s ease}
 .askdlg{width:min(400px,calc(100vw - 32px));padding:30px 26px 24px;text-align:center;border:0;border-radius:22px;box-shadow:0 24px 80px #1a24363d}
 .askdlg::backdrop{background:#17212e66;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
