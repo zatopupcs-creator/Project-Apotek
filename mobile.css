@@ -357,3 +357,19 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
 .pgskel{flex:none;margin-bottom:18px}
 #cataloglist>.pager{margin-top:22px}
 #cataloglist,#mgrows,.pgskel,.tablewrap.nums{scroll-margin-top:84px}
+@media(max-width:720px){
+ body.cartpage .cartpanel .cartitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"thumb name qty bin" "thumb price qty bin";column-gap:10px;row-gap:2px;align-items:center}
+ body.cartpage .cartpanel .cartitem .thumb{grid-area:thumb}
+ body.cartpage .cartpanel .carttext{display:contents}
+ body.cartpage .cartpanel .carttext b{grid-area:name;align-self:end;font-size:.92rem;line-height:1.25}
+ body.cartpage .cartpanel .carttext small{grid-area:price;align-self:start;margin:0;font-size:.8rem}
+ body.cartpage .cartpanel .cartitem .qty{grid-area:qty;gap:6px}
+ body.cartpage .cartpanel .cartitem .qty button{width:32px;height:32px}
+ body.cartpage .cartpanel .cartitem>.iconbtn{grid-area:bin;width:40px;height:40px}
+}
+@media(max-width:360px){
+ body.cartpage .cartpanel .cartitem{column-gap:6px}
+ body.cartpage .cartpanel .cartitem .qty{gap:4px}
+ body.cartpage .cartpanel .cartitem .qty button{width:30px;height:30px}
+ body.cartpage .cartpanel .cartitem>.iconbtn{width:34px;height:34px}
+}
