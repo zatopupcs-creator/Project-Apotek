@@ -370,9 +370,17 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
  body.cartpage .cartpanel .cartitem .qty button{width:30px;height:30px}
  body.cartpage .cartpanel .cartitem>.iconbtn{width:34px;height:34px}
 }
-.pgskel td.skm,.pgskel th.skm{background:none!important;animation:none!important;position:relative}
-.pgskel td.skm::after,.pgskel th.skm::after{content:"";position:absolute;left:12px;right:28%;top:50%;height:14px;margin-top:-7px;border-radius:8px;background:linear-gradient(90deg,#e8ebf0 25%,#f3f5f8 40%,#e8ebf0 60%) 100% 50%/300% 100%;animation:skshimmer 1.4s ease-in-out infinite}
-.pgskel th.skm::after{height:12px;margin-top:-6px;right:40%}
-.pgskel td.skm:has(.skm)::after,.pgskel td:has(.skm)::after{display:none}
-.pgskel td>.skm,.pgskel td .skm{border-radius:8px}
-@media(prefers-reduced-motion:reduce){.pgskel td.skm::after,.pgskel th.skm::after{animation:none}}
+.skm:not(input):not(textarea):not(select):not(button):not(img):not(svg):not(canvas):not(.photo):not(.thumb):not(.avatar):not(td):not(th){width:fit-content;max-width:100%;clip-path:inset(16% 0 16% 0 round 7px)}
+.searchbox input.skm{clip-path:inset(32% 62% 32% 0 round 8px)}
+td.skm,th.skm{background:none!important;animation:none!important;clip-path:none}
+td.skm::before{display:none!important}
+@media(min-width:721px){
+ td.skm,th.skm{position:relative}
+ td.skm::after,th.skm::after{content:"";position:absolute;left:12px;right:28%;top:50%;height:14px;margin-top:-7px;border-radius:8px;background:linear-gradient(90deg,#e8ebf0 25%,#f3f5f8 40%,#e8ebf0 60%) 100% 50%/300% 100%;animation:skshimmer 1.4s ease-in-out infinite}
+ th.skm::after{height:12px;margin-top:-6px;right:40%}
+}
+@media(max-width:720px){
+ td.skm{background:linear-gradient(90deg,#e8ebf0 25%,#f3f5f8 40%,#e8ebf0 60%) 100% 50%/300% 100%!important;animation:skshimmer 1.4s ease-in-out infinite!important;width:fit-content;max-width:100%;border-radius:8px;clip-path:inset(16% 0 16% 0 round 7px)}
+}
+@media(prefers-reduced-motion:reduce){td.skm::after,th.skm::after,td.skm{animation:none!important}}
+.tablewrap td>button.skm{max-height:38px;overflow:hidden;white-space:nowrap}
