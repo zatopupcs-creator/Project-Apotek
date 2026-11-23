@@ -97,11 +97,21 @@
     if(id!==refreshId)return;data=null;close();currentSale=null;$('#print').innerHTML='';authError=e.message;render();
    }
   }
+  let swapTimer;
+  function renderSwap(){
+   render();
+   const main=$('#main');if(!data||!main)return;
+   const real=main.innerHTML;
+   main.innerHTML=skeletonize(real)+'<span class="sr" role="status">Memuat data…</span>';
+   main.setAttribute('aria-busy','true');scrollTo(0,0);
+   swapTimer=setTimeout(()=>{main.innerHTML=real;main.removeAttribute('aria-busy')},450);
+  }
   function nav(m){
    if(!allowed(m))return;selectMenu();cartPushed=false;dbUnlocked=false;page=m;mg.search='';mg.pg={};draftLogo=data.settings.logo||'';
-   if(location.hash!=='#'+m)location.hash=m;render();
+   if(location.hash!=='#'+m)location.hash=m;renderSwap();
   }
   function render(){
+   clearTimeout(swapTimer);$('#main')?.removeAttribute('aria-busy');
    if(data&&!allowed(page))page=Object.keys(db.menus).find(allowed)||'noaccess';
    document.title=(data?db.menus[page]||'Akun':'Masuk')+' · '+(brand.name||'Bee Farma');
    if(page!=='pengaturan')dbUnlocked=false;
@@ -348,7 +358,7 @@
    case 'employee':if(id&&data.staff.find(x=>x.id===id)?.owner){askUnlock(()=>edit('employee',id),'owner');break}edit(a,id);break;
    case 'product':case 'supplier':edit(a,id);break;
    case 'contact':{let s=data.suppliers.find(s=>s.id===id);modal(s.name,contact(s,data.products)+(allowed('suplier')?'<div class="actions">'+btn('supplier','Edit suplier','edit','',s.id)+'</div>':''));break}
-   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'tab':{const go=()=>{settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';mg.pg={};render()};if(id==='koneksi'&&!dbUnlocked){askUnlock(go);break}if(id!=='koneksi')dbUnlocked=false;go();break}case 'opensettings':close();nav('pengaturan');break;
+   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'tab':{const go=()=>{settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';mg.pg={};renderSwap()};if(id==='koneksi'&&!dbUnlocked){askUnlock(go);break}if(id!=='koneksi')dbUnlocked=false;go();break}case 'opensettings':close();nav('pengaturan');break;
    case 'connection':if(owner()&&!dbUnlocked)askUnlock(()=>modal('Pengaturan database',connectionView()));else if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
@@ -408,7 +418,7 @@
    if(t.name==='period'){mg.period=t.value;render()}
    if(t.name==='method'){let paid=t.form.elements.paid;paid.value=totals().total;paid.readOnly=t.value!=='Tunai';$('#change').innerHTML=line('Kembalian',rp(0))}});
   document.addEventListener('dp-range',e=>{Object.assign(mg,e.detail);mg.pg={};if(data&&page==='laporan')render()});
-  window.addEventListener('hashchange',()=>{let m=location.hash.slice(1);if(m==='keranjang'||m===page||!allowed(m)){syncCartPage();return}page=m;render()});
+  window.addEventListener('hashchange',()=>{let m=location.hash.slice(1);if(m==='keranjang'||m===page||!allowed(m)){syncCartPage();return}page=m;renderSwap()});
   mq.addEventListener?.('change',syncCartPage);
   window.addEventListener('storage',e=>{
    if(e.key==='figiha.supabase'){db.logout();cartKey='';authError='';refresh();return}
