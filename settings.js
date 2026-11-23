@@ -58,7 +58,7 @@ const ApotekSettings = (() => {
   function settingsView(d,tab,draftLogo){
    const tabs=[['bisnis','Bisnis & struk','receipt'],...(d.me.owner?[['akun','Akun login','pegawai'],['koneksi','Database','database']]:[])];
    const nav='<div class="settingsnav">'+tabs.map(([id,l,ic])=>btn('tab',l,ic,tab===id?'dark':'',id)).join('')+'</div>';
-   const heading=head('Pengaturan','Kelola identitas apotek dan kebutuhan operasional.');
+   const heading=head('Pengaturan');
    if(tab==='koneksi'&&d.me.owner)return heading+nav+'<div class="panel settingsbox">'+connectionView()+'</div>';
    if(tab==='akun'&&d.me.owner)return heading+nav+'<section class="panel"><div class="panelhead"><h2>Akun login</h2>'+btn('employee','Tambah akun','plus','dark')+'</div><div class="panelhead">'+search('mgsearch',mg.search,'Cari nama, username, atau ID…')+'</div><div id="mgrows">'+managementRows('pegawai',d)+'</div></section>';
    const b=d.settings;
