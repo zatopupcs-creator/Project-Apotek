@@ -87,7 +87,6 @@
 .sk{display:block;background:linear-gradient(90deg,#e8ebf0 25%,#f3f5f8 40%,#e8ebf0 60%);background-size:300% 100%;animation:skshimmer 1.4s ease-in-out infinite;border-radius:8px}
 @keyframes skshimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
 .sk-title{width:min(240px,60%);height:34px;margin-bottom:10px}
-.sk-sub{width:min(360px,80%);height:14px}
 .sk-search{width:100%;height:45px;border-radius:9px}
 .sk-chips{display:flex;gap:8px;margin:15px 0 22px}
 .sk-chip{width:78px;height:36px}
@@ -277,7 +276,6 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
  body.has-side .pagehead{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:10px;min-height:46px;padding-left:58px;margin:0 0 12px}
  body.has-side .pagehead>div:first-child{flex:1 1 auto;min-width:0}
  body.has-side .pagehead h1{margin:0;font-size:1.5rem;line-height:1.15;overflow-wrap:anywhere}
- body.has-side .pagehead p{display:none}
  body.has-side .pagehead>.btn{flex:none;min-height:40px;padding:0 14px;font-size:.88rem}
  body.has-side .pagehead>.date{flex:none;margin:0;max-width:none;white-space:nowrap;font-size:.8rem;gap:6px}
  body.has-side .pagehead>.date svg{width:15px;height:15px}
@@ -355,8 +353,7 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
 @keyframes pagein{from{transform:translateY(32px);opacity:0}to{transform:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){dialog#dialog.sheet[open],dialog#dialog.page[open]{animation:none}}
 .pgskel{flex:none;margin-bottom:18px}
-#cataloglist>.pager{margin-top:22px}
-#cataloglist,#mgrows,.pgskel,.tablewrap.nums{scroll-margin-top:84px}
+#mgrows,.pgskel,.tablewrap.nums{scroll-margin-top:84px}
 @media(max-width:720px){
  body.cartpage .cartpanel .cartitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"thumb name qty bin" "thumb price qty bin";column-gap:10px;row-gap:2px;align-items:center}
  body.cartpage .cartpanel .cartitem .thumb{grid-area:thumb}
@@ -373,3 +370,9 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
  body.cartpage .cartpanel .cartitem .qty button{width:30px;height:30px}
  body.cartpage .cartpanel .cartitem>.iconbtn{width:34px;height:34px}
 }
+.pgskel td.skm,.pgskel th.skm{background:none!important;animation:none!important;position:relative}
+.pgskel td.skm::after,.pgskel th.skm::after{content:"";position:absolute;left:12px;right:28%;top:50%;height:14px;margin-top:-7px;border-radius:8px;background:linear-gradient(90deg,#e8ebf0 25%,#f3f5f8 40%,#e8ebf0 60%) 100% 50%/300% 100%;animation:skshimmer 1.4s ease-in-out infinite}
+.pgskel th.skm::after{height:12px;margin-top:-6px;right:40%}
+.pgskel td.skm:has(.skm)::after,.pgskel td:has(.skm)::after{display:none}
+.pgskel td>.skm,.pgskel td .skm{border-radius:8px}
+@media(prefers-reduced-motion:reduce){.pgskel td.skm::after,.pgskel th.skm::after{animation:none}}
