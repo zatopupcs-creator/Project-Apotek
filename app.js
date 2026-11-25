@@ -3,7 +3,7 @@
   const {h,rp,date,nomor,head,btn,ib,field,icon,line,ticket,photo,search,empty,formEnd,logoUrl} = ApotekUI;
   const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,exportPdf,exportChooser,mg,goPage} = ApotekManagement;
   const {connectionView,loginView,updateLoginBrand,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
-  const {renderNavigation,selectMenu,toggleMenu,closeMenu,preload} = ApotekNavigation;
+  const {renderNavigation,selectMenu,toggleMenu,closeMenu,preload,showSkeleton} = ApotekNavigation;
   const $=s=>document.querySelector(s),dlg=$('#dialog');
   let data,page=location.hash.slice(1)||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
   let brand={name:'Bee Farma',logo:''},draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
@@ -102,9 +102,9 @@
    render();
    const main=$('#main');if(!data||!main)return;
    const real=main.innerHTML;
-   main.innerHTML=skeletonize(real)+'<span class="sr" role="status">Memuat data…</span>';
-   main.setAttribute('aria-busy','true');scrollTo(0,0);
-   swapTimer=setTimeout(()=>{main.innerHTML=real;main.removeAttribute('aria-busy')},450);
+   showSkeleton();
+   main.innerHTML=skeleton();main.setAttribute('aria-busy','true');scrollTo(0,0);
+   swapTimer=setTimeout(()=>{if(!data)return;renderNavigation(data.me,page,brand,allowed);main.innerHTML=real;main.removeAttribute('aria-busy')},450);
   }
   function nav(m){
    if(!allowed(m))return;selectMenu();cartPushed=false;dbUnlocked=false;page=m;mg.search='';mg.pg={};draftLogo=data.settings.logo||'';
