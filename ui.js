@@ -17,7 +17,7 @@ const ApotekUI = (() => {
     control='<div class="selectbox"><input type="hidden" name="'+h(name)+'" value="'+h(value)+'"><button type="button" class="control selbtn datebtn" data-dp="single" aria-haspopup="dialog"><span class="'+(value?'':'ph')+'">'+h(value?ApotekDates.label(value):(placeholder||'Pilih tanggal'))+'</span>'+icon('calendar',17)+'</button></div>';
    }else control=textarea?'<textarea rows="3"'+attrs+'>'+h(value)+'</textarea>':'<input type="'+type+'" value="'+h(value)+'" placeholder="'+h(placeholder)+'"'+attrs+'>';
    return '<label class="field '+(wide?'wide':'')+'">'+h(label)+control+'</label>';};
-  const head=(title,action='')=>'<div class="pagehead"><div><h1>'+h(title)+'</h1></div>'+action+'</div>';
+  const head=(title,action='')=>'<div class="pagehead"><div><h1>'+h(title)+'</h1></div>'+action+'<button type="button" class="bellbtn" data-a="notif" aria-label="Pengingat kedaluwarsa" hidden>'+icon('bell',20)+'<span class="bellbadge" hidden></span></button></div>';
   const empty=(title,desc='')=>'<div class="empty">'+icon('box',28)+'<strong>'+h(title)+'</strong>'+h(desc)+'</div>';
   const line=(label,value,cls='')=>'<div class="line '+cls+'"><span>'+h(label)+'</span><b>'+h(value)+'</b></div>';
   function photo(p){let img=p.image||'';return /^(assets\/[\w-]+\.jpg$|data:image\/(?:jpeg|png|webp);base64,[a-z0-9+/=]+$)/i.test(img)?'<img alt="'+h(p.name)+'" src="'+h(img)+'" loading="lazy" onerror="apotekBroken(this)">':'<span class="fallback">'+icon('pill',38)+'</span>'}
