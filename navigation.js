@@ -6,8 +6,9 @@ const ApotekNavigation = (() => {
   const backdrop=document.getElementById('side-backdrop');
   const desktop=matchMedia('(min-width: 1000px)');
   const body=document.body;
-  let activeUser=null,isOpen=false,groupCollapsed=false,booting=false;
+  let activeUser=null,isOpen=false,groupCollapsed=false,booting=false,navScroll=0;
   const preferOpen=()=>localStorage.getItem('figiha.sidebar')!=='closed';
+  pane.addEventListener('scroll',e=>{if(e.target.classList&&e.target.classList.contains('snav-scroll'))navScroll=e.target.scrollTop},true);
   function sync(){
    const present=Boolean(activeUser||booting),show=Boolean(present&&isOpen);
    body.classList.toggle('has-side',present);
@@ -34,10 +35,13 @@ const ApotekNavigation = (() => {
   backdrop.addEventListener('click',()=>closeMenu(false));
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&body.classList.contains('side-modal'))closeMenu(false)});
   desktop.addEventListener('change',()=>{isOpen=Boolean(activeUser)&&desktop.matches&&preferOpen();sync()});
+  function showSkeleton(){
+   pane.innerHTML='<div class="snav-brand"><i class="sk sk-brandlogo"></i><i class="sk sk-brandname"></i></div><nav class="snav-scroll"><div class="snav-group"><i class="sk sk-navlabel"></i><div class="snav-items">'+Array.from({length:6},()=>'<div class="sk-navitem"><i class="sk"></i><i class="sk"></i></div>').join('')+'</div></div></nav><div class="snav-foot"><div class="sk-user"><i class="sk sk-avatar"></i><div><i class="sk"></i><i class="sk"></i></div></div><i class="sk sk-logout"></i></div>';
+  }
   function preload(){
    booting=true;isOpen=desktop.matches&&preferOpen();
    body.classList.add('no-anim');
-   pane.innerHTML='<div class="snav-brand"><i class="sk sk-brandlogo"></i><i class="sk sk-brandname"></i></div><nav class="snav-scroll"><div class="snav-group"><i class="sk sk-navlabel"></i><div class="snav-items">'+Array.from({length:6},()=>'<div class="sk-navitem"><i class="sk"></i><i class="sk"></i></div>').join('')+'</div></div></nav><div class="snav-foot"><div class="sk-user"><i class="sk sk-avatar"></i><div><i class="sk"></i><i class="sk"></i></div></div><i class="sk sk-logout"></i></div>';
+   showSkeleton();
    sync();
    requestAnimationFrame(()=>requestAnimationFrame(()=>body.classList.remove('no-anim')));
   }
@@ -54,8 +58,28 @@ const ApotekNavigation = (() => {
     '<nav class="snav-scroll" aria-label="Menu utama"><div class="snav-group'+(groupCollapsed?' collapsed':'')+'"><button type="button" class="snav-label" data-a="togglegroup" aria-expanded="'+(!groupCollapsed)+'"><span>MENU UTAMA</span>'+icon('down',16)+'</button><div class="snav-items">'+links+'</div></div></nav>'+
     '<div class="snav-foot"><button type="button" data-a="account" class="snav-user"><span class="avatar">'+h(user.name.trim().slice(0,2).toUpperCase())+'</span><span class="who"><strong>'+h(user.name)+'</strong><small>'+h(user.owner?'Pemilik':user.employee_code||'Pegawai')+'</small></span></button>'+
     btn('logout','Keluar','user','snav-logout')+'</div>';
+   const scroller=pane.querySelector('.snav-scroll');
+   if(scroller){
+    scroller.scrollTop=navScroll;
+    const cur=scroller.querySelector('.current'),r=scroller.getBoundingClientRect();
+    if(cur&&r.height){
+     const c=cur.getBoundingClientRect();
+     if(c.bottom>r.bottom)scroller.scrollTop+=c.bottom-r.bottom+12;
+     else if(c.top<r.top)scroller.scrollTop-=r.top-c.top+12;
+     navScroll=scroller.scrollTop;
+    }
+   }
    if(first)isOpen=desktop.matches&&preferOpen();
    sync();
+   const again=pane.querySelector('.snav-scroll'),cur2=again&&again.querySelector('.current');
+   if(again&&cur2){
+    const r2=again.getBoundingClientRect(),c2=cur2.getBoundingClientRect();
+    if(r2.height){
+     if(c2.bottom>r2.bottom)again.scrollTop+=c2.bottom-r2.bottom+12;
+     else if(c2.top<r2.top)again.scrollTop-=r2.top-c2.top+12;
+     navScroll=again.scrollTop;
+    }
+   }
   }
-return { closeMenu, selectMenu, toggleMenu, renderNavigation, preload };
+return { closeMenu, selectMenu, toggleMenu, renderNavigation, preload, showSkeleton };
 })();
