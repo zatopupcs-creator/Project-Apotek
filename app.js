@@ -1,7 +1,7 @@
 (() => {
   const db = ApotekData;
   const {h,rp,date,nomor,head,btn,ib,field,icon,line,ticket,photo,search,empty,formEnd,logoUrl} = ApotekUI;
-  const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,exportPdf,exportChooser,mg,goPage} = ApotekManagement;
+  const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,exportPdf,exportChooser,mg,goPage,expiring,expiryNotice,today} = ApotekManagement;
   const {connectionView,loginView,updateLoginBrand,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
   const {renderNavigation,selectMenu,toggleMenu,closeMenu,preload,showSkeleton} = ApotekNavigation;
   const $=s=>document.querySelector(s),dlg=$('#dialog');
@@ -71,11 +71,15 @@
   function resetDraft(){cart={};discount=0;orderId=db.uuid();pending=false;saveDraft()}
   function cartLines(){return Object.entries(cart).map(([id,qty])=>({p:product(id),qty})).filter(x=>x.p&&x.qty>0)}
   function totals(){let lines=cartLines(),sub=lines.reduce((n,{p,qty})=>n+p.price*qty,0),qty=lines.reduce((n,x)=>n+x.qty,0);return {sub,qty,total:Math.max(0,sub-discount),lines}}
+  const loaderText={stok:'Mengambil stok & batch dari server',suplier:'Mengambil data suplier dari server',pegawai:'Mengambil data pegawai dari server',riwayat:'Mengambil riwayat transaksi dari server',laporan:'Mengambil data penjualan dari server',produk:'Mengambil tampilan produk dari server'};
+  const loadingBlock=()=>'<div class="tableloading"><i class="spinner" aria-hidden="true"></i><b>Memuat data...</b><span>'+(loaderText[page]||'Mengambil data dari server')+'</span></div>';
+  const tablePages=['stok','suplier','pegawai','riwayat','produk'];
   function skeleton(){
    const bar=(cls)=>'<i class="sk '+cls+'"></i>';
    const head='<div class="pagehead"><div>'+bar('sk-title')+'</div></div>';
    const status='<span class="sr" role="status">Memuat data…</span>';
    if(page==='kasir')return status+head+'<div class="pos"><section class="catalog">'+bar('sk-search')+'<div class="sk-chips">'+bar('sk-chip')+bar('sk-chip')+bar('sk-chip')+bar('sk-chip')+'</div><div class="products">'+Array.from({length:6},()=>'<div class="card"><i class="sk sk-photo"></i><div class="cardbody">'+bar('sk-line w60')+bar('sk-line w80')+bar('sk-line w40')+'</div></div>').join('')+'</div></section><aside class="cartpanel sk-cart">'+bar('sk-line w60')+bar('sk-block')+bar('sk-line w80')+bar('sk-line w80')+bar('sk-btn')+'</aside></div>';
+   if(tablePages.includes(page))return status+head+'<section class="panel">'+bar('sk-search')+(page==='produk'?'':bar('sk-thead'))+loadingBlock()+'</section>';
    return status+head+'<section class="panel">'+bar('sk-search')+Array.from({length:6},()=>'<div class="sk-row">'+bar('sk-thumb')+'<div class="sk-grow">'+bar('sk-line w40')+bar('sk-line w20')+'</div>'+bar('sk-line w15')+bar('sk-line w15')+'</div>').join('')+'</section>';
   }
   async function refresh(){
@@ -87,16 +91,18 @@
     return;
    }
    try{
-    if(!data)$('#main').innerHTML=skeleton();
-    const fresh=await db.state();if(id!==refreshId)return;
+    const first=!data;
+    if(first)$('#main').innerHTML=skeleton();
+    const [fresh]=await Promise.all([db.state(),new Promise(r=>setTimeout(r,first?loadMs:0))]);if(id!==refreshId)return;
     data=fresh;brand={name:data.settings.name,logo:data.settings.logo||''};authError='';loadDraft();
     draftLogo=brand.logo;
     if(!owner()&&settingsTab!=='bisnis')settingsTab='bisnis';
-    render();
+    render();checkExpiry();
    }catch(e){
     if(id!==refreshId)return;data=null;close();currentSale=null;$('#print').innerHTML='';authError=e.message;render();
    }
   }
+  const loadMs=1000;
   let swapTimer;
   function renderSwap(){
    render();
@@ -104,7 +110,28 @@
    const real=main.innerHTML;
    showSkeleton();
    main.innerHTML=skeleton();main.setAttribute('aria-busy','true');scrollTo(0,0);
-   swapTimer=setTimeout(()=>{if(!data)return;renderNavigation(data.me,page,brand,allowed);main.innerHTML=real;main.removeAttribute('aria-busy')},450);
+   swapTimer=setTimeout(()=>{if(!data)return;renderNavigation(data.me,page,brand,allowed);main.innerHTML=real;main.removeAttribute('aria-busy');updateBell()},loadMs);
+  }
+  function updateBell(){
+   const show=Boolean(data&&allowed('stok')),items=show?expiring(data):[];
+   document.querySelectorAll('.bellbtn').forEach(b=>{
+    b.hidden=!show;
+    const badge=b.querySelector('.bellbadge');
+    badge.hidden=!items.length;badge.textContent=items.length>9?'9+':items.length;
+    badge.classList.toggle('danger',items.some(x=>x.days<=7));
+   });
+  }
+  function checkExpiry(){
+   if(!data||!allowed('stok')||dlg.open)return;
+   const items=expiring(data);if(!items.length)return;
+   const key='figiha.expiry.'+data.me.id,now=today();
+   let last=null;try{last=localStorage.getItem(key)}catch{}
+   if(last){
+    const a=ApotekDates.parse(last),b=ApotekDates.parse(now),gap=Math.round((Date.UTC(b.y,b.m,b.d)-Date.UTC(a.y,a.m,a.d))/864e5);
+    if(gap<(items[0].days<=7?1:7))return;
+   }
+   try{localStorage.setItem(key,now)}catch{}
+   modal('Pengingat kedaluwarsa',expiryNotice(items));
   }
   function nav(m){
    if(!allowed(m))return;selectMenu();cartPushed=false;dbUnlocked=false;page=m;mg.search='';mg.pg={};draftLogo=data.settings.logo||'';
@@ -121,6 +148,7 @@
    syncCartPage();
    if(!data){$('#main').innerHTML=loginView('',brand.name,brand.logo);if(authError){feedback(authError,'error');authError=''}return}
    $('#main').innerHTML=page==='kasir'?pos():page==='pengaturan'?settingsView(data,settingsTab,draftLogo):page==='noaccess'?empty('Belum ada menu yang diizinkan','Hubungi pemilik untuk mengatur akses akun Anda.'):management(page,data);
+   updateBell();
   }
   function signOut(){
    db.logout();close();dbUnlocked=false;data=null;authError='';cartKey='';currentSale=null;cart={};pending=false;settingsTab='bisnis';
@@ -132,23 +160,21 @@
    return head('Kasir',dt)+'<div class="pos"><section class="catalog"><div class="toolsrow">'+search('catalogsearch',query,'Cari produk atau SKU…')+btn('filter','Filter','filter',sort!=='default'||available?'dark':'')+'</div><div class="chips" aria-label="Kategori produk">'+['Semua',...new Set([...db.categories,...data.products.map(p=>p.category)])].map(c=>'<button class="chip '+(category===c?'on':'')+'" data-a="category" data-id="'+h(c)+'" aria-pressed="'+(c===category)+'">'+(c==='Semua'?icon('grid',15):'')+h(c)+'</button>').join('')+'</div><div id="cataloglist">'+catalogList()+'</div></section><aside id="cart" class="cartpanel">'+cartView()+'</aside></div><div id="mobilecart">'+mobileCart()+'</div>';
   }
   let pageTimer;
-  function pageSkeleton(){
-   const row='<div class="sk-row"><i class="sk sk-thumb"></i><div class="sk-grow"><i class="sk sk-line w40"></i><i class="sk sk-line w20"></i></div><i class="sk sk-line w15"></i><i class="sk sk-line w15"></i></div>';
-   return '<div class="pgskel" aria-busy="true"><span class="sr" role="status">Memuat data…</span>'+row.repeat(6)+'</div>';
-  }
   function repage(){
    clearTimeout(pageTimer);
    const y=scrollY;
    if(page==='laporan')render();
    else{const box=$('#mgrows');if(!box)return;box.innerHTML=managementRows(page==='pengaturan'?'pegawai':page,data)}
-   const wrap=document.querySelector('#mgrows>.tablewrap,#mgrows>.empty,.tablewrap.nums');
+   const wrap=document.querySelector('#mgrows>.tablewrap,#mgrows>.empty,#mgrows>.products,.tablewrap.nums');
    if(page==='laporan')scrollTo(0,y);
    if(!wrap)return;
    const node=document.createElement('div');node.className='pgskel';node.setAttribute('aria-busy','true');
-   node.innerHTML=skeletonize(wrap.outerHTML)+'<span class="sr" role="status">Memuat data…</span>';
+   let shell='';
+   if(wrap.classList.contains('tablewrap')){const copy=wrap.cloneNode(true);copy.querySelectorAll('tbody').forEach(t=>t.remove());shell=copy.outerHTML}
+   node.innerHTML=shell+loadingBlock();
    wrap.replaceWith(node);
    if(node.getBoundingClientRect().top<0)node.scrollIntoView({block:'start'});
-   pageTimer=setTimeout(()=>{if(node.isConnected)node.replaceWith(wrap)},450);
+   pageTimer=setTimeout(()=>{if(node.isConnected)node.replaceWith(wrap)},loadMs);
   }
   let catalogTimer;
   function catalogSkeleton(){
@@ -334,7 +360,7 @@
     editing=data.staff.find(s=>s.id===id);if(editing)modal('Atur kata sandi',passwordForm(editing));
    }break;
    case 'clearlogo':{if(!await askConfirm('Hapus logo?','Logo akan dilepas dari website dan struk setelah pengaturan disimpan.','Hapus','trash'))break;const f=$('#businessform');if(f){draftLogo='';f.elements.logoFile.value='';updateLogoTile('');$('#receipt-preview').innerHTML=receiptPreview(receiptValues(f,''))}break}
-   case 'nav':nav(id);break;case 'home':if(data)nav(Object.keys(db.menus).find(allowed));break;
+   case 'nav':nav(id);break;case 'notif':modal('Pengingat kedaluwarsa',expiryNotice(expiring(data)));break;case 'expgo':close();nav('stok');break;case 'home':if(data)nav(Object.keys(db.menus).find(allowed));break;
    case 'account':selectMenu();account();break;case 'close':close();break;
    case 'category':category=id;render();catalogSwap();break;case 'add':case 'minus':{if(a==='minus'&&cart[id]===1&&!pending&&product(id)){askRemove(id);break}const before=totals().qty,had=(cart[id]||0)>0;changeQty(id,a);if(a==='add'&&button.closest('.card')&&totals().qty>before)cartFx(button,id,!had);break}
    case 'remove':{if(pending||!product(id)){changeQty(id,a);break}askRemove(id);break}
@@ -418,6 +444,7 @@
    if(t.name==='period'){mg.period=t.value;render()}
    if(t.name==='method'){let paid=t.form.elements.paid;paid.value=totals().total;paid.readOnly=t.value!=='Tunai';$('#change').innerHTML=line('Kembalian',rp(0))}});
   document.addEventListener('dp-range',e=>{Object.assign(mg,e.detail);mg.pg={};if(data&&page==='laporan')render()});
+  setInterval(checkExpiry,3600000);
   window.addEventListener('hashchange',()=>{let m=location.hash.slice(1);if(m==='keranjang'||m===page||!allowed(m)){syncCartPage();return}page=m;renderSwap()});
   mq.addEventListener?.('change',syncCartPage);
   window.addEventListener('storage',e=>{
