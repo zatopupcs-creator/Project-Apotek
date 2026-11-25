@@ -16,11 +16,29 @@ const ApotekManagement = (() => {
    const state=expiryState(daysLeft(p.expiry));
    return '<div class="expcell"><span>'+shortDate(p.expiry)+'</span>'+(state?'<small class="expbadge '+state[0]+'">'+state[1]+'</small>':'')+'</div>';
   };
-  const expiring=d=>d.products.filter(p=>p.expiry).map(p=>({p,days:daysLeft(p.expiry)})).filter(x=>x.days<=30).sort((a,b)=>a.days-b.days);
-  function expiryNotice(items){
-   if(!items.length)return empty('Tidak ada yang mendekati kedaluwarsa','Produk dengan batas kedaluwarsa 30 hari akan muncul di sini.')+'<div class="actions"><button type="button" class="btn" data-a="close">Tutup</button></div>';
-   return '<p class="expnote">'+items.length+' produk sudah kedaluwarsa atau akan kedaluwarsa dalam 30 hari.</p><div class="explist">'+items.map(({p,days})=>{const state=expiryState(days);return '<div class="expitem"><div><b>'+h(p.name)+'</b><small>'+(p.batch?'Batch '+h(p.batch)+' · ':'')+'Stok '+h(p.stock)+'</small></div><div class="expcell"><span>'+shortDate(p.expiry)+'</span><small class="expbadge '+state[0]+'">'+state[1]+'</small></div></div>'}).join('')+'</div><div class="actions"><button type="button" class="btn" data-a="close">Tutup</button><button type="button" class="btn dark" data-a="expgo">Lihat stok</button></div>';
+  const expiring=(d,skip)=>d.products.filter(p=>p.expiry).map(p=>({p,days:daysLeft(p.expiry),key:p.id+'|'+p.expiry})).filter(x=>x.days<=30&&!(skip&&skip.has(x.key))).sort((a,b)=>a.days-b.days);
+  function expiryRows(items,st){
+   return items.map(({p,days,key})=>{
+    const state=expiryState(days);
+    const cell='<div class="expcell"><span>'+shortDate(p.expiry)+'</span><small class="expbadge '+state[0]+'">'+state[1]+'</small></div>';
+    const info='<div class="expinfo"><b>'+h(p.name)+'</b><small>'+(p.batch?'Batch '+h(p.batch)+' · ':'')+'Stok '+h(p.stock)+'</small></div>';
+    if(st.selecting){
+     const on=st.selected.has(key);
+     return '<div class="expwrap"><div class="expitem selecting'+(on?' on':'')+'" role="checkbox" aria-checked="'+on+'" tabindex="0" data-a="expcheck" data-id="'+h(key)+'"><span class="expbox">'+(on?icon('check',14):'')+'</span>'+info+cell+'</div></div>';
+    }
+    return '<div class="expwrap"><div class="expbg" aria-hidden="true">'+icon('trash',18)+'<span>Hapus</span></div><div class="expitem" data-key="'+h(key)+'">'+info+cell+ib('expdel','Hapus pengingat '+p.name,'trash',key)+'</div></div>';
+   }).join('');
   }
+  function expiryInner(items,st){
+   const restore=st.restorable?'<button type="button" class="btn" data-a="expreset">Pulihkan ('+st.restorable+')</button>':'';
+   if(!items.length)return empty('Tidak ada pengingat','Produk yang kedaluwarsa dalam 30 hari akan muncul di sini.')+(restore?'<div class="exptools center">'+restore+'</div>':'')+'<div class="actions"><button type="button" class="btn" data-a="close">Tutup</button></div>';
+   const all=items.every(x=>st.selected.has(x.key));
+   const tools=st.selecting
+    ?'<div class="exptools"><span class="expcount">'+st.selected.size+' dipilih</span><div class="expbtns"><button type="button" class="btn" data-a="expall">'+(all?'Batal pilih semua':'Pilih semua')+'</button><button type="button" class="btn danger" data-a="expdelsel"'+(st.selected.size?'':' disabled')+'>Hapus</button><button type="button" class="btn" data-a="expselect">Batal</button></div></div>'
+    :'<div class="exptools"><span class="expcount">'+items.length+' pengingat</span><div class="expbtns"><button type="button" class="btn" data-a="expselect">Pilih</button><button type="button" class="btn danger" data-a="expclear">Hapus semua</button>'+restore+'</div></div>';
+   return '<p class="expnote">'+items.length+' produk sudah kedaluwarsa atau akan kedaluwarsa dalam 30 hari.'+(st.selecting?'':' Geser ke kanan untuk menghapus.')+'</p>'+tools+'<div class="explist">'+expiryRows(items,st)+'</div><div class="actions"><button type="button" class="btn" data-a="close">Tutup</button><button type="button" class="btn dark" data-a="expgo">Lihat stok</button></div>';
+  }
+  const expiryNotice=(items,st)=>'<div id="expbox">'+expiryInner(items,st)+'</div>';
   const sizes=[10,25,50,100];
   function pageList(cur,total){
    if(total<=5)return Array.from({length:total},(_,i)=>i+1);
@@ -154,5 +172,5 @@ const ApotekManagement = (() => {
     rows:sales.map(s=>[nomor(s),date(s.at,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),s.cashier,s.method,String(s.items.reduce((n,i)=>n+i.qty,0)),rp(s.total),rp(s.total-s.cost)])};
    download(ApotekPdf.report(model),'laporan-penjualan-'+today()+'.pdf');
   }
-return { today, mg, goPage, expiring, expiryNotice, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv, exportPdf, exportChooser };
+return { today, mg, goPage, expiring, expiryNotice, expiryInner, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv, exportPdf, exportChooser };
 })();
