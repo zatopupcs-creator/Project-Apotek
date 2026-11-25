@@ -8,6 +8,19 @@ const ApotekManagement = (() => {
   const matches=(...values)=>values.join(' ').toLowerCase().includes(mg.search.toLowerCase());
   const pic=p=>'<span class="thumb">'+photo(p)+'</span>';
   const item=p=>'<div class="tableproduct">'+pic(p)+'<div><b>'+h(p.name)+'</b><small>'+h(p.sku)+' · '+h(p.unit)+'</small></div></div>';
+  const daysLeft=v=>{if(!v)return null;const a=ApotekDates.parse(v),b=ApotekDates.parse(today());return Math.round((Date.UTC(a.y,a.m,a.d)-Date.UTC(b.y,b.m,b.d))/864e5)};
+  const shortDate=v=>{const {y,m,d}=ApotekDates.parse(v);return d+' '+ApotekDates.SHORT[m]+' '+y};
+  const expiryState=days=>days<0?['expired','Kedaluwarsa']:days===0?['danger','Hari ini']:days<=7?['danger',days+' hari lagi']:days<=30?['warn',days+' hari lagi']:null;
+  const expiryCell=p=>{
+   if(!p.expiry)return '—';
+   const state=expiryState(daysLeft(p.expiry));
+   return '<div class="expcell"><span>'+shortDate(p.expiry)+'</span>'+(state?'<small class="expbadge '+state[0]+'">'+state[1]+'</small>':'')+'</div>';
+  };
+  const expiring=d=>d.products.filter(p=>p.expiry).map(p=>({p,days:daysLeft(p.expiry)})).filter(x=>x.days<=30).sort((a,b)=>a.days-b.days);
+  function expiryNotice(items){
+   if(!items.length)return empty('Tidak ada yang mendekati kedaluwarsa','Produk dengan batas kedaluwarsa 30 hari akan muncul di sini.')+'<div class="actions"><button type="button" class="btn" data-a="close">Tutup</button></div>';
+   return '<p class="expnote">'+items.length+' produk sudah kedaluwarsa atau akan kedaluwarsa dalam 30 hari.</p><div class="explist">'+items.map(({p,days})=>{const state=expiryState(days);return '<div class="expitem"><div><b>'+h(p.name)+'</b><small>'+(p.batch?'Batch '+h(p.batch)+' · ':'')+'Stok '+h(p.stock)+'</small></div><div class="expcell"><span>'+shortDate(p.expiry)+'</span><small class="expbadge '+state[0]+'">'+state[1]+'</small></div></div>'}).join('')+'</div><div class="actions"><button type="button" class="btn" data-a="close">Tutup</button><button type="button" class="btn dark" data-a="expgo">Lihat stok</button></div>';
+  }
   const sizes=[10,25,50,100];
   function pageList(cur,total){
    if(total<=5)return Array.from({length:total},(_,i)=>i+1);
@@ -36,12 +49,18 @@ const ApotekManagement = (() => {
    if(page==='laporan')return reports(d);
    let title=menus[page];
    const add={stok:['product','Tambah produk'],suplier:['supplier','Tambah suplier'],pegawai:['employee','Tambah pegawai']}[page];
-   return head(title,add?btn(add[0],add[1],'plus','dark'):'')+'<div class="panel"><div class="panelhead">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
+   return head(title,add?btn(add[0],add[1],'plus','dark'):'')+'<div class="panel"><div class="panelhead">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir',produk:'nama produk, SKU, atau kategori'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
   }
   function managementRows(page,d){
+   if(page==='produk'){
+    const items=d.products.filter(p=>matches(p.name,p.sku,p.category,p.detail));
+    if(!items.length)return empty(mg.search?'Tidak ada hasil pencarian':'Belum ada produk','');
+    const pg=paginate('produk','produk',items);
+    return '<div class="products display">'+pg.items.map(p=>'<article class="card"><div class="photo">'+photo(p)+'</div><div class="cardbody"><span class="tag">'+h(p.category)+'</span><h3>'+h(p.name)+'</h3><span class="productdesc">'+h(p.detail||p.sku)+'</span><div class="cardbottom"><div><span class="price">'+rp(p.price)+'</span> <span class="unit">/ '+h(p.unit.toLowerCase())+'</span></div><div class="addcol"><span class="stocktag '+(p.stock===0?'zero':p.stock<=p.minimum?'low':'')+'">Stok '+h(p.stock)+'</span></div></div></div></article>').join('')+'</div>'+pg.html;
+   }
    let headers,rows,noun;
    if(page==='stok'){noun='produk';
-   headers=['Produk','Kategori','Stok','Harga beli','Harga jual','Suplier',''];rows=d.products.filter(p=>matches(p.name,p.sku,p.category)).map(p=>{let s=find(d.suppliers,p.supplier);return row(item(p),h(p.category),'<b class="'+(p.stock<=p.minimum?'lowtext':'')+'">'+h(p.stock)+'</b>',rp(p.cost),rp(p.price),s?btn('contact',s.name,'phone','',s.id):'—','<div class="rowactions">'+ib('product','Edit stok '+p.name,'edit',p.id)+ib('deleteproduct','Hapus '+p.name,'trash',p.id)+'</div>')});
+   headers=['Produk','Kategori','Stok','Kedaluwarsa','Harga beli','Harga jual','Suplier',''];rows=d.products.filter(p=>matches(p.name,p.sku,p.category)).map(p=>{let s=find(d.suppliers,p.supplier);return row(item(p),h(p.category),'<b class="'+(p.stock<=p.minimum?'lowtext':'')+'">'+h(p.stock)+'</b>',expiryCell(p),'<span class="nw">'+rp(p.cost)+'</span>','<span class="nw">'+rp(p.price)+'</span>',s?btn('contact',s.name,'phone','',s.id):'—','<div class="rowactions">'+ib('product','Edit stok '+p.name,'edit',p.id)+ib('deleteproduct','Hapus '+p.name,'trash',p.id)+'</div>')});
    }else if(page==='suplier'){noun='suplier';
    headers=['Suplier','Kontak','Telepon','Produk dipasok',''];rows=d.suppliers.filter(s=>matches(s.name,s.contact)).map(s=>row('<button class="linkbtn" data-a="contact" data-id="'+h(s.id)+'">'+h(s.name)+'</button>',h(s.contact||'—'),h(s.phone||'—'),String(d.products.filter(p=>p.supplier===s.id).length),ib('supplier','Edit suplier','edit',s.id)));
    }else if(page==='pegawai'){noun='akun';
@@ -135,5 +154,5 @@ const ApotekManagement = (() => {
     rows:sales.map(s=>[nomor(s),date(s.at,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),s.cashier,s.method,String(s.items.reduce((n,i)=>n+i.qty,0)),rp(s.total),rp(s.total-s.cost)])};
    download(ApotekPdf.report(model),'laporan-penjualan-'+today()+'.pdf');
   }
-return { today, mg, goPage, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv, exportPdf, exportChooser };
+return { today, mg, goPage, expiring, expiryNotice, management, managementRows, productForm, supplierForm, employeeForm, contact, reports, exportCsv, exportPdf, exportChooser };
 })();
