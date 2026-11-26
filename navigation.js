@@ -10,12 +10,18 @@ const ApotekNavigation = (() => {
   const preferOpen=()=>localStorage.getItem('figiha.sidebar')!=='closed';
   pane.addEventListener('scroll',e=>{if(e.target.classList&&e.target.classList.contains('snav-scroll'))navScroll=e.target.scrollTop},true);
   function sync(){
-   const present=Boolean(activeUser||booting),show=Boolean(present&&isOpen);
+   const present=Boolean(activeUser||booting),show=Boolean(present&&isOpen),rail=Boolean(present&&!show&&desktop.matches);
    body.classList.toggle('has-side',present);
    body.classList.toggle('side-open',show);
+   body.classList.toggle('side-rail',rail);
    body.classList.toggle('side-modal',show&&!desktop.matches);
-   pane.setAttribute('aria-hidden',String(!show));
-   if('inert' in pane)pane.inert=!show;
+   pane.setAttribute('aria-hidden',String(!show&&!rail));
+   if('inert' in pane)pane.inert=!show&&!rail;
+   pane.querySelectorAll('.snav-item,.snav-user,.snav-logout').forEach(el=>{
+    const label=(el.querySelector('strong')||el).textContent.trim();
+    if(rail){el.title=label;el.setAttribute('aria-label',label)}
+    else{el.removeAttribute('title');el.removeAttribute('aria-label')}
+   });
    toggle.hidden=!present;
    toggle.setAttribute('aria-expanded',String(show));
    toggle.title=show?'Tutup menu':'Buka menu';
