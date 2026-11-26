@@ -16,18 +16,21 @@ const ApotekSettings = (() => {
   }
   function loginField(label,name,iconName,type,extra,toggle){
    const id='login-'+name;
-   return '<div class="floatfield"><span class="inputicon">'+icon(iconName,19)+'<input class="control" id="'+id+'" name="'+name+'" type="'+type+'" placeholder=" " required '+extra+'><label for="'+id+'">'+h(label)+'</label>'+(toggle?'<button type="button" class="pwtoggle" aria-label="Tampilkan kata sandi"><span class="eye-show">'+icon('eye',19)+'</span><span class="eye-hide">'+icon('eyeoff',19)+'</span></button>':'')+'</span></div>';
+   return '<div class="lg-field"><label for="'+id+'">'+h(label)+'</label><span class="inputicon">'+icon(iconName,18)+'<input class="control" id="'+id+'" name="'+name+'" type="'+type+'" placeholder=" " required '+extra+'>'+(toggle?'<button type="button" class="pwtoggle" aria-label="Tampilkan kata sandi"><span class="eye-show">'+icon('eye',18)+'</span><span class="eye-hide">'+icon('eyeoff',18)+'</span></button>':'')+'</span></div>';
   }
+  function loginTitle(name){const shop=String(name||'').trim().replace(/^apotek\s+/i,'');return shop?'Masuk ke apotek '+shop:'Masuk ke apotek'}
   function updateLoginBrand(name,logo){
-   const img=document.querySelector('.signin-brand'),title=document.querySelector('.signin-form h1');
-   if(img)img.src=logoUrl(logo)||'icon.svg';
-   if(title){const shop=String(name||'').trim().replace(/^apotek\s+/i,'');title.textContent=shop?'Masuk ke apotek '+shop:'Masuk ke apotek'}
+   const src=logoUrl(logo)||'icon.svg',title=document.querySelector('.lg-form h1'),side=document.querySelector('.lg-side strong');
+   document.querySelectorAll('.lg-logo').forEach(img=>img.src=src);
+   if(title)title.textContent=loginTitle(name);
+   if(side)side.textContent=String(name||'').trim()||'Bee Farma';
   }
   function loginView(error,name='',logo=''){
-   const shop=String(name||'').trim().replace(/^apotek\s+/i,'');
-   return '<div class="login-stage"><section class="signin-card">'+
-    '<div class="signin-form"><img class="signin-brand" alt="" src="'+h(logoUrl(logo)||'icon.svg')+'"><h1>'+h(shop?'Masuk ke apotek '+shop:'Masuk ke apotek')+'</h1>'+
-    '<form id="loginform"><div class="stack">'+
+   const src=h(logoUrl(logo)||'icon.svg');
+   return '<div class="login-stage"><section class="lg-card">'+
+    '<aside class="lg-side"><img class="lg-logo" alt="" src="'+src+'"><strong>'+h(String(name||'').trim()||'Bee Farma')+'</strong><span>Sistem kasir dan manajemen apotek</span></aside>'+
+    '<div class="lg-form"><img class="lg-logo lg-logo-sm" alt="" src="'+src+'"><h1>'+h(loginTitle(name))+'</h1><p class="lg-sub">Masukkan akun pegawai Anda untuk membuka kasir.</p>'+
+    '<form id="loginform"><div class="lg-fields">'+
     loginField('Username atau ID pegawai','identifier','user','text','autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40"')+
     loginField('Kata sandi','password','lock','password','autocomplete="current-password"',true)+
     '</div><button class="btn dark full login-submit">Masuk</button></form>'+
