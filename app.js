@@ -3,13 +3,16 @@
   const {h,rp,date,nomor,head,btn,ib,field,icon,line,ticket,photo,search,empty,formEnd,logoUrl} = ApotekUI;
   const {management,managementRows,productForm,supplierForm,employeeForm,contact,exportCsv,exportPdf,exportChooser,mg,goPage,expiring,expiryNotice,expiryInner,today} = ApotekManagement;
   const {connectionView,loginView,updateLoginBrand,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
-  const {renderNavigation,selectMenu,toggleMenu,closeMenu,preload,showSkeleton} = ApotekNavigation;
+  const {renderNavigation,selectMenu,toggleMenu,closeMenu,preload} = ApotekNavigation;
   const $=s=>document.querySelector(s),dlg=$('#dialog');
   const brandKey='figiha.brand';
   function loadBrand(){
    try{const v=JSON.parse(localStorage.getItem(brandKey)||'null');if(v&&typeof v.name==='string'&&v.name)return {name:v.name,logo:typeof v.logo==='string'?v.logo:''}}catch{}
    return {name:'Bee Farma',logo:''};
   }
+  const navKey='figiha.nav';
+  function saveNav(){try{const m=data.me;localStorage.setItem(navKey,JSON.stringify({name:m.name,owner:Boolean(m.owner),employee_code:m.employee_code||'',menus:m.menus||[]}))}catch{}}
+  function loadNav(){try{const v=JSON.parse(localStorage.getItem(navKey)||'null');if(v&&typeof v.name==='string'&&Array.isArray(v.menus))return v}catch{}return null}
   function saveBrand(){try{localStorage.setItem(brandKey,JSON.stringify(brand))}catch{}}
   let data,page=location.hash.slice(1)||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
   let brand=loadBrand(),draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
@@ -98,7 +101,7 @@
     const first=!data;
     if(first)$('#main').innerHTML=skeleton();
     const [fresh]=await Promise.all([db.state(),new Promise(r=>setTimeout(r,first?skeletonMs:0))]);if(id!==refreshId)return;
-    data=fresh;brand={name:data.settings.name,logo:data.settings.logo||''};saveBrand();authError='';loadDraft();
+    data=fresh;brand={name:data.settings.name,logo:data.settings.logo||''};saveBrand();saveNav();authError='';loadDraft();
     draftLogo=brand.logo;
     if(!owner()&&settingsTab!=='bisnis')settingsTab='bisnis';
     render();if(first)showTableLoading();checkExpiry();
@@ -112,9 +115,8 @@
    render();
    const main=$('#main');if(!data||!main)return;
    const real=main.innerHTML;
-   showSkeleton();
    main.innerHTML=skeleton();main.setAttribute('aria-busy','true');scrollTo(0,0);
-   swapTimer=setTimeout(()=>{if(!data)return;renderNavigation(data.me,page,brand,allowed);main.innerHTML=real;main.removeAttribute('aria-busy');updateBell();showTableLoading()},skeletonMs);
+   swapTimer=setTimeout(()=>{if(!data)return;main.innerHTML=real;main.removeAttribute('aria-busy');updateBell();showTableLoading()},skeletonMs);
   }
   let expSelecting=false,expSelected=new Set(),swipe=null;
   const expKey=()=>'figiha.expdismiss.'+(data?.me?.id||'');
@@ -209,7 +211,7 @@
    updateBell();
   }
   function signOut(){
-   db.logout();close();dbUnlocked=false;data=null;authError='';cartKey='';currentSale=null;cart={};pending=false;settingsTab='bisnis';
+   db.logout();try{localStorage.removeItem(navKey)}catch{}close();dbUnlocked=false;data=null;authError='';cartKey='';currentSale=null;cart={};pending=false;settingsTab='bisnis';
    page='kasir';if(location.hash)history.replaceState(null,'',location.pathname+location.search);
    return refresh();
   }
@@ -525,6 +527,10 @@
   document.addEventListener('keydown',e=>{if(dlg.open||document.body.classList.contains('side-modal')||page!=='kasir'||!data)return;if(e.key==='F2'){e.preventDefault();$('#catalogsearch').focus()}if(e.key==='F8'){e.preventDefault();payment()}});
   dlg.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
   dlg.addEventListener('close',()=>{if(!dlg.open){dlg.replaceChildren();editing=null}});
-  if(db.session())preload();
+  if(db.session()){
+   preload();
+   const cached=loadNav();
+   if(cached)renderNavigation(cached,page,brand,m=>Object.hasOwn(db.menus,m)&&(cached.owner||m!=='pegawai'&&cached.menus.includes(m)));
+  }
   refresh();
 })();
