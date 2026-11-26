@@ -316,7 +316,7 @@
    await Promise.allSettled(Array.from(printArea.querySelectorAll('img'),img=>img.decode()));
    window.print();
   }
-  function account(){const m=data.me;modal('Akun pengguna',line('Nama',m.name)+line('Peran',m.owner?'Pemilik':'Pegawai')+line('Penyimpanan',db.config()?'Database online':'Hanya di perangkat ini')+'<div class="actions">'+(allowed('pengaturan')?btn('opensettings','Pengaturan','pengaturan'):'')+btn('logout','Keluar akun')+'</div>')}
+  function account(){const m=data.me;modal('Akun pengguna',line('Nama',m.name)+line('Peran',m.owner?'Pemilik':'Pegawai')+line('Penyimpanan',db.config()?'Database online':'Hanya di perangkat ini')+'<div class="actions">'+(allowed('pengaturan')?btn('opensettings','Pengaturan','pengaturan'):'')+btn('logout','Keluar akun','logout')+'</div>')}
   function edit(kind,id){
    const [key,label,form]={product:['products','produk',productForm],supplier:['suppliers','suplier',supplierForm],employee:['staff','pegawai',employeeForm]}[kind];
    if(kind==='employee'&&!owner())return;
@@ -461,7 +461,7 @@
    case 'connection':if(owner()&&!dbUnlocked)askUnlock(()=>modal('Pengaturan database',connectionView()));else if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
-   case 'logout':if(await askConfirm('Keluar dari akun?','Anda perlu masuk lagi untuk memakai aplikasi.','Keluar','user'))await signOut();break;
+   case 'logout':if(await askConfirm('Keluar dari akun?','Anda perlu masuk lagi untuk memakai aplikasi.','Keluar','logout'))await signOut();break;
    case 'disconnect':if(owner()&&await askConfirm('Putuskan database?','Aplikasi akan kembali ke mode demo dan Anda keluar dari akun.','Putuskan','database')){db.disconnect();brand={name:'Bee Farma',logo:''};try{localStorage.removeItem(brandKey)}catch{}await signOut()}break;
    }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;button.classList.remove('loading');if(a==='test')button.disabled=false}
   });
