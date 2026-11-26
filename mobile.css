@@ -400,16 +400,9 @@ td.skm::before{display:none!important}
 .expbadge.warn{background:#fef3c7;color:#92400e}
 .expbadge.danger{background:#fee2e2;color:#b91c1c}
 .expbadge.expired{background:#7f1d1d;color:#fff}
-.expnote{margin:0 0 14px;color:var(--muted);font-size:.93rem}
-.explist{display:flex;flex-direction:column;max-height:min(52vh,420px);overflow-y:auto}
-.sk-thead{display:block;height:46px;margin:12px 0 6px;border-radius:12px}
 .tableloading{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:280px;padding:24px;text-align:center}
 .tableloading b{margin-top:10px;font-size:1.02rem;color:#202632}
 .tableloading span{font-size:.9rem;color:var(--muted)}
-.spinner{display:block;width:36px;height:36px;border-radius:50%;border:4px dotted #8ea2d6;animation:tblspin 1.1s linear infinite}
-@keyframes tblspin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
-.products.display .photo{cursor:default}
 .nw{white-space:nowrap}
 .tablewrap th{white-space:nowrap}
 .exptools{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 12px;margin:0 0 6px}
@@ -434,3 +427,13 @@ td.skm::before{display:none!important}
 .expbox{flex:none;display:grid;place-items:center;width:22px;height:22px;border:2px solid #c3cad8;border-radius:7px;color:#fff;transition:background-color .15s,border-color .15s}
 .expitem.on .expbox{background:#202630;border-color:#202630}
 .expitem.selecting:focus-visible{outline:2px solid var(--orange);outline-offset:-2px}
+.spinner{display:block;width:44px;height:44px;animation:tblspin .9s linear infinite}
+.spinner circle{fill:none;stroke-width:4}
+.spinner .track{stroke:#e3e7ef}
+.spinner .arc{stroke:#202630;stroke-linecap:round;stroke-dasharray:34 126}
+@keyframes tblspin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spinner{animation-duration:2.4s}}
+#expbox{display:flex;flex-direction:column;height:min(64vh,430px)}
+#expbox .explist{flex:1 1 auto;min-height:0;overflow-y:auto}
+#expbox>.empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#expbox>.actions{margin-top:auto;padding-top:12px}
