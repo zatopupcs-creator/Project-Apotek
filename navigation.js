@@ -60,7 +60,7 @@ const ApotekNavigation = (() => {
    pane.innerHTML='<div class="snav-brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></div>'+
     '<nav class="snav-scroll" aria-label="Menu utama"><div class="snav-group'+(groupCollapsed?' collapsed':'')+'"><button type="button" class="snav-label" data-a="togglegroup" aria-expanded="'+(!groupCollapsed)+'"><span>MENU UTAMA</span>'+icon('down',16)+'</button><div class="snav-items">'+links+'</div></div></nav>'+
     '<div class="snav-foot"><button type="button" data-a="account" class="snav-user"><span class="avatar">'+h(user.name.trim().slice(0,2).toUpperCase())+'</span><span class="who"><strong>'+h(user.name)+'</strong><small>'+h(user.owner?'Pemilik':user.employee_code||'Pegawai')+'</small></span></button>'+
-    btn('logout','Keluar','user','snav-logout')+'</div>';
+    btn('logout','Keluar','logout','snav-logout')+'</div>';
    const scroller=pane.querySelector('.snav-scroll');
    if(scroller){
     scroller.scrollTop=navScroll;
