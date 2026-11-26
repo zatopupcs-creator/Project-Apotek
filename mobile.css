@@ -437,3 +437,13 @@ td.skm::before{display:none!important}
 #expbox .explist{flex:1 1 auto;min-height:0;overflow-y:auto}
 #expbox>.empty{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #expbox>.actions{margin-top:auto;padding-top:12px}
+.searchbox{padding:0 5px 0 14px}
+.searchgo{flex:none;display:grid;place-items:center;width:35px;height:35px;padding:0;border:0;border-radius:8px;background:#202630;color:#fff;transition:background-color .15s,transform .15s}
+.searchgo:hover{background:#343b48}
+.searchgo:active{transform:scale(.94)}
+.searchgo:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.cancelsale{margin-top:10px;min-height:44px;color:#b91c1c;border-color:#fecaca;background:#fff}
+.cancelsale:hover:not(:disabled){background:#fef2f2}
+.cartitem.leaving{overflow:hidden;pointer-events:none;animation:cartout .42s cubic-bezier(.4,0,.6,1) forwards;animation-delay:calc(var(--i,0)*70ms)}
+@keyframes cartout{0%{opacity:1;transform:none;max-height:160px}55%{opacity:0;transform:translateX(70px) scale(.96);max-height:160px}100%{opacity:0;transform:translateX(70px) scale(.96);max-height:0;padding-top:0;padding-bottom:0;margin:0;border-width:0}}
+@media(prefers-reduced-motion:reduce){.cartitem.leaving{animation-duration:.01s;animation-delay:0s}}
