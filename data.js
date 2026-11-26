@@ -1,5 +1,5 @@
 const ApotekData = (() => {
-  const menus={kasir:'Kasir',suplier:'Suplier',stok:'Stok',laporan:'Laporan',riwayat:'Riwayat',pegawai:'Pegawai',produk:'Tampilan produk',pengaturan:'Pengaturan'};
+  const menus={kasir:'Kasir',suplier:'Suplier',stok:'Stok',laporan:'Laporan',riwayat:'Riwayat',pegawai:'Pegawai',pengaturan:'Pengaturan'};
   const categories=['Obat','Vitamin','Herbal','Alat kesehatan','Perawatan'];
   const localKey='figiha.demo.v1', cfgKey='figiha.supabase', authKey='figiha.session.v2', demoSessionKey='figiha.demo.login.v2';
   const settingsId='00000000-0000-0000-0000-000000000001';
