@@ -1,0 +1,42 @@
+/* Tata letak halaman + footer */
+body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+main{flex:1 0 auto;width:100%;margin-top:0;margin-bottom:0}
+.has-side main{min-height:0}
+.sitefoot{flex:none;text-align:center;padding:18px 20px 20px;font-size:.8rem;color:#7b8494;line-height:1.4}
+@media(min-width:1000px){
+ .has-side main{width:auto;padding-top:26px}
+ .has-side .pagehead{margin-bottom:20px}
+ .has-side .cartpanel{top:20px}
+ body.side-rail .sitefoot{margin-left:var(--rail)}
+ body.side-open .sitefoot{margin-left:var(--sw)}
+ .sitefoot{transition:margin .28s ease}
+}
+@media print{.sitefoot{display:none!important}}
+
+/* Halaman masuk */
+body:has(.login-stage) #header{display:none}
+main:has(.login-stage){padding:0}
+.login-stage{min-height:calc(100dvh - 58px);display:flex;align-items:center;justify-content:center;padding:28px 16px}
+.lg-card{display:grid;grid-template-columns:5fr 6fr;width:min(860px,100%);background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px #1018280d}
+.lg-side{background:#202630;color:#fff;padding:44px 36px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.lg-side .lg-logo{width:60px;height:60px;object-fit:contain;background:#fff;border-radius:10px;padding:6px;margin-bottom:16px}
+.lg-side strong{font-size:1.45rem;font-weight:700;letter-spacing:-.02em;line-height:1.2;overflow-wrap:anywhere}
+.lg-side span{color:#aab2bf;font-size:.9rem;line-height:1.5}
+.lg-form{padding:46px 42px;align-self:center}
+.lg-logo-sm{display:none}
+.lg-form h1{margin:0 0 6px;font-size:1.5rem;font-weight:700;letter-spacing:-.03em;line-height:1.25}
+.lg-sub{margin:0 0 24px;color:var(--muted);font-size:.9rem;line-height:1.5}
+.lg-fields{display:grid;gap:16px}
+.lg-field label{display:block;margin-bottom:6px;font-size:.85rem;font-weight:600;color:#3b4454}
+.lg-field .control{min-height:44px;border:1px solid #cfd5dd;border-radius:8px;font-size:.95rem;padding-left:42px}
+.lg-field .control:focus{outline:0;border-color:#202630;box-shadow:0 0 0 3px #20263018}
+.lg-field .inputicon>svg{left:14px}
+.lg-form .login-submit{margin-top:20px;min-height:46px;border-radius:8px;font-size:.95rem;letter-spacing:0}
+@media(max-width:640px){
+ .login-stage{align-items:flex-start;padding:24px 14px}
+ .lg-card{grid-template-columns:1fr;max-width:420px}
+ .lg-side{display:none}
+ .lg-logo-sm{display:block;width:52px;height:52px;object-fit:contain;margin:0 0 14px}
+ .lg-form{padding:26px 22px 28px}
+ .lg-form h1{font-size:1.3rem}
+}
