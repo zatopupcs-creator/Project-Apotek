@@ -71,8 +71,8 @@
   function resetDraft(){cart={};discount=0;orderId=db.uuid();pending=false;saveDraft()}
   function cartLines(){return Object.entries(cart).map(([id,qty])=>({p:product(id),qty})).filter(x=>x.p&&x.qty>0)}
   function totals(){let lines=cartLines(),sub=lines.reduce((n,{p,qty})=>n+p.price*qty,0),qty=lines.reduce((n,x)=>n+x.qty,0);return {sub,qty,total:Math.max(0,sub-discount),lines}}
-  const loaderText={stok:'Mengambil stok & batch dari server',suplier:'Mengambil data suplier dari server',pegawai:'Mengambil data pegawai dari server',riwayat:'Mengambil riwayat transaksi dari server',laporan:'Mengambil data penjualan dari server',produk:'Mengambil tampilan produk dari server'};
-  const loadingBlock=()=>'<div class="tableloading"><i class="spinner" aria-hidden="true"></i><b>Memuat data...</b><span>'+(loaderText[page]||'Mengambil data dari server')+'</span></div>';
+  const loaderText={stok:'Mengambil stok & batch dari server',suplier:'Mengambil data suplier dari server',pegawai:'Mengambil data pegawai dari server',riwayat:'Mengambil riwayat transaksi dari server',laporan:'Mengambil data penjualan dari server'};
+  const loadingBlock=()=>'<div class="tableloading"><svg class="spinner" viewBox="0 0 50 50" aria-hidden="true"><circle class="track" cx="25" cy="25" r="20"/><circle class="arc" cx="25" cy="25" r="20"/></svg><b>Memuat data...</b><span>'+(loaderText[page]||'Mengambil data dari server')+'</span></div>';
   function skeleton(){
    const bar=(cls)=>'<i class="sk '+cls+'"></i>';
    const head='<div class="pagehead"><div>'+bar('sk-title')+'</div></div>';
@@ -214,7 +214,7 @@
   let pageTimer;
   function showTableLoading(){
    clearTimeout(pageTimer);
-   const wrap=document.querySelector('#mgrows>.tablewrap,#mgrows>.empty,#mgrows>.products,.tablewrap.nums');
+   const wrap=document.querySelector('#mgrows>.tablewrap,#mgrows>.empty,.tablewrap.nums');
    if(!wrap)return;
    const node=document.createElement('div');node.className='pgskel';node.setAttribute('aria-busy','true');
    let shell='';
