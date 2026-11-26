@@ -39,7 +39,7 @@ const ApotekUI = (() => {
     '<hr>'+line('Subtotal',rp(s.subtotal))+line('Diskon',rp(s.discount))+line('TOTAL',rp(s.total))+
     line(s.method,rp(s.paid))+line('Kembali',rp(s.change))+'<hr>'+text(b.footer)+'</section>';
   }
-  const search=(id,value,placeholder)=>'<label class="searchbox">'+icon('search',19)+'<input type="search" id="'+id+'" aria-label="'+h(placeholder)+'" placeholder="'+h(placeholder)+'" value="'+h(value)+'"></label>';
+  const search=(id,value,placeholder)=>'<label class="searchbox"><input type="search" id="'+id+'" aria-label="'+h(placeholder)+'" placeholder="'+h(placeholder)+'" value="'+h(value)+'" enterkeyhint="search"><button type="button" class="searchgo" data-a="searchgo" data-id="'+id+'" aria-label="Cari">'+icon('search',18)+'</button></label>';
   const formEnd=(label='Simpan')=>'<p class="error" role="alert"></p><div class="actions">'+btn('close','Batal')+'<button class="btn primary" type="submit">'+h(label)+'</button></div>';
 return { h, rp, date, nomor, btn, ib, field, head, empty, line, photo, table, row, logoUrl, ticket, search, formEnd, icon };
 })();
