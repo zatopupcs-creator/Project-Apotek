@@ -41,13 +41,10 @@ const ApotekNavigation = (() => {
   backdrop.addEventListener('click',()=>closeMenu(false));
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&body.classList.contains('side-modal'))closeMenu(false)});
   desktop.addEventListener('change',()=>{isOpen=Boolean(activeUser)&&desktop.matches&&preferOpen();sync()});
-  function showSkeleton(){
-   pane.innerHTML='<div class="snav-brand"><i class="sk sk-brandlogo"></i><i class="sk sk-brandname"></i></div><nav class="snav-scroll"><div class="snav-group"><i class="sk sk-navlabel"></i><div class="snav-items">'+Array.from({length:6},()=>'<div class="sk-navitem"><i class="sk"></i><i class="sk"></i></div>').join('')+'</div></div></nav><div class="snav-foot"><div class="sk-user"><i class="sk sk-avatar"></i><div><i class="sk"></i><i class="sk"></i></div></div><i class="sk sk-logout"></i></div>';
-  }
   function preload(){
    booting=true;isOpen=desktop.matches&&preferOpen();
    body.classList.add('no-anim');
-   showSkeleton();
+   pane.innerHTML='';
    sync();
    requestAnimationFrame(()=>requestAnimationFrame(()=>body.classList.remove('no-anim')));
   }
@@ -87,5 +84,5 @@ const ApotekNavigation = (() => {
     }
    }
   }
-return { closeMenu, selectMenu, toggleMenu, renderNavigation, preload, showSkeleton };
+return { closeMenu, selectMenu, toggleMenu, renderNavigation, preload };
 })();
