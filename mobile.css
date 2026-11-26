@@ -184,18 +184,6 @@ dialog[open]::backdrop{animation:fadein .24s ease}
 }
 body.no-anim *,body.no-anim *::before,body.no-anim *::after{transition:none!important}
 #cataloglist[aria-busy="true"] .card{pointer-events:none}
-.sk-brandlogo{width:34px;height:34px;border-radius:8px;flex-shrink:0}
-.sk-brandname{width:110px;height:16px}
-.sk-navlabel{width:90px;height:10px;margin:16px 0 10px 10px}
-.sk-navitem{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px}
-.sk-navitem i:first-child{width:19px;height:19px;border-radius:5px;flex-shrink:0}
-.sk-navitem i:last-child{width:90px;height:12px}
-.sk-user{display:flex;align-items:center;gap:12px;padding:8px}
-.sk-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0}
-.sk-user div{display:grid;gap:8px}
-.sk-user div i{width:92px;height:14px}
-.sk-user div i+i{width:60px;height:12px}
-.sk-logout{height:40px;border-radius:8px;margin-top:4px}
 .floatfield{position:relative;display:block}
 .floatfield .inputicon{display:block}
 .floatfield label{position:absolute;left:46px;top:50%;transform:translateY(-50%);padding:0 6px;margin-left:-6px;color:#6b7280;font-size:1rem;font-weight:400;line-height:1.2;pointer-events:none;background:#fff;transition:top .18s ease,left .18s ease,font-size .18s ease,color .18s ease,font-weight .18s ease}
