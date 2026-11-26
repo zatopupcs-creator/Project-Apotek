@@ -5,8 +5,14 @@
   const {connectionView,loginView,updateLoginBrand,ownerForm,passwordForm,settingsView,receiptValues,receiptPreview,resizeLogo,updateLogoTile} = ApotekSettings;
   const {renderNavigation,selectMenu,toggleMenu,closeMenu,preload,showSkeleton} = ApotekNavigation;
   const $=s=>document.querySelector(s),dlg=$('#dialog');
+  const brandKey='figiha.brand';
+  function loadBrand(){
+   try{const v=JSON.parse(localStorage.getItem(brandKey)||'null');if(v&&typeof v.name==='string'&&v.name)return {name:v.name,logo:typeof v.logo==='string'?v.logo:''}}catch{}
+   return {name:'Bee Farma',logo:''};
+  }
+  function saveBrand(){try{localStorage.setItem(brandKey,JSON.stringify(brand))}catch{}}
   let data,page=location.hash.slice(1)||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
-  let brand={name:'Bee Farma',logo:''},draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
+  let brand=loadBrand(),draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
   if(page==='keranjang')page='kasir';
   const mq=matchMedia('(max-width:720px)');let cartPushed=false;
   const cartPageOpen=()=>Boolean(data&&page==='kasir'&&mq.matches&&location.hash==='#keranjang');
@@ -84,7 +90,7 @@
    const id=++refreshId;
    if(!db.session()){
     data=null;currentSale=null;$('#print').innerHTML='';close();render();
-    try{const publicBrand=await db.branding();if(id===refreshId&&publicBrand&&!data){const changed=publicBrand.name!==brand.name||publicBrand.logo!==brand.logo;brand=publicBrand;if(changed&&!document.querySelector('#loginform input:not(:placeholder-shown)'))render();else{renderNavigation(null,page,brand,allowed);updateLoginBrand(brand.name,brand.logo)}}}
+    try{const publicBrand=await db.branding();if(id===refreshId&&publicBrand&&!data){const changed=publicBrand.name!==brand.name||publicBrand.logo!==brand.logo;brand=publicBrand;saveBrand();if(changed&&!document.querySelector('#loginform input:not(:placeholder-shown)'))render();else{renderNavigation(null,page,brand,allowed);updateLoginBrand(brand.name,brand.logo)}}}
     catch{}
     return;
    }
@@ -92,7 +98,7 @@
     const first=!data;
     if(first)$('#main').innerHTML=skeleton();
     const [fresh]=await Promise.all([db.state(),new Promise(r=>setTimeout(r,first?skeletonMs:0))]);if(id!==refreshId)return;
-    data=fresh;brand={name:data.settings.name,logo:data.settings.logo||''};authError='';loadDraft();
+    data=fresh;brand={name:data.settings.name,logo:data.settings.logo||''};saveBrand();authError='';loadDraft();
     draftLogo=brand.logo;
     if(!owner()&&settingsTab!=='bisnis')settingsTab='bisnis';
     render();if(first)showTableLoading();checkExpiry();
@@ -454,7 +460,7 @@
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
    case 'logout':if(await askConfirm('Keluar dari akun?','Anda perlu masuk lagi untuk memakai aplikasi.','Keluar','user'))await signOut();break;
-   case 'disconnect':if(owner()&&await askConfirm('Putuskan database?','Aplikasi akan kembali ke mode demo dan Anda keluar dari akun.','Putuskan','database')){db.disconnect();brand={name:'Bee Farma',logo:''};await signOut()}break;
+   case 'disconnect':if(owner()&&await askConfirm('Putuskan database?','Aplikasi akan kembali ke mode demo dan Anda keluar dari akun.','Putuskan','database')){db.disconnect();brand={name:'Bee Farma',logo:''};try{localStorage.removeItem(brandKey)}catch{}await signOut()}break;
    }}catch(ex){err(ex,button.closest('form'))}finally{busy=false;button.classList.remove('loading');if(a==='test')button.disabled=false}
   });
   document.addEventListener('submit',async e=>{
