@@ -242,7 +242,7 @@
    return '<div class="sectionline"><h2>Katalog produk</h2><span>'+products.length+' produk</span></div><div class="products">'+(products.map(p=>'<article class="card"><button class="photo" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambah '+h(p.name)+'" '+(!p.stock?'disabled':'')+'>'+photo(p)+'</button><div class="cardbody"><span class="tag">'+h(p.category)+'</span><h3>'+h(p.name)+'</h3><span class="productdesc">'+h(p.detail||p.sku)+'</span><div class="cardbottom"><div><span class="price">'+rp(p.price)+'</span> <span class="unit">/ '+h(p.unit.toLowerCase())+'</span></div><div class="addcol"><span class="stocktag '+(p.stock===0?'zero':p.stock<=p.minimum?'low':'')+'" data-sid="'+h(p.id)+'">Stok <span class="stocknum">'+p.stock+'</span></span><button class="square" type="button" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambahkan '+h(p.name)+' ke keranjang" '+(!p.stock?'disabled':'')+'>'+icon('plus',17)+'</button></div></div></div></article>').join('')||empty('Produk tidak ditemukan',data.products.length?'Coba kata kunci atau kategori lain.':'Tambahkan produk melalui menu Stok.'))+'</div>';
   }
   function cartView(){const {qty,sub,total,lines}=totals();
-   return '<div class="boxhead"><div class="boxname"><button type="button" class="cartback" data-a="cartback" aria-label="Kembali ke katalog">'+backArrow+'</button><span class="boxicon logo"><img alt="" src="'+h(logoUrl(brand.logo)||'icon.svg')+'"></span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem" data-pid="'+h(p.id)+'"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<span>'+qty+'</span>'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p><button type="button" class="btn cartback-btn" data-a="cartback">Kembali ke katalog</button></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button></div>';
+   return '<div class="boxhead"><div class="boxname"><button type="button" class="cartback" data-a="cartback" aria-label="Kembali ke katalog">'+backArrow+'</button><span class="boxicon logo"><img alt="" src="'+h(logoUrl(brand.logo)||'icon.svg')+'"></span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem" data-pid="'+h(p.id)+'"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<span>'+qty+'</span>'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p><button type="button" class="btn cartback-btn" data-a="cartback">Kembali ke katalog</button></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button>'+(qty?btn('cancelsale','Batalkan transaksi','trash','full cancelsale'):'')+'</div>';
   }
   const mobileCart=()=>totals().qty?btn('jumpcart','Keranjang · '+rp(totals().total),'bag','primary floatcart'):'';
   function updateCart(){saveDraft();$('#cart').innerHTML=cartView();$('#mobilecart').innerHTML=mobileCart()}
@@ -363,6 +363,21 @@
     document.body.append(d);d.showModal();input().focus();
    });
   }
+  let clearing=false;
+  function clearCart(){
+   if(clearing)return;
+   clearing=true;
+   const items=[...document.querySelectorAll('#cart .cartitem')],reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+   items.forEach((el,i)=>{el.style.setProperty('--i',i);el.classList.add('leaving')});
+   document.querySelectorAll('#cart button').forEach(b=>{b.disabled=true});
+   setTimeout(()=>{clearing=false;resetDraft();updateCart();feedback('Transaksi dibatalkan.')},reduce?0:items.length*70+450);
+  }
+  function runSearch(id){
+   const el=$('#'+id);if(!el)return;
+   if(id==='catalogsearch'){query=el.value;catalogSwap()}
+   else{mg.search=el.value;mg.pg={};repage()}
+   if(document.activeElement===el&&matchMedia('(pointer:coarse)').matches)el.blur();
+  }
   function askRemove(id){const p=product(id);modal('Hapus dari keranjang','<p class="note">Hapus <b>'+h(p.name)+'</b> dari keranjang?</p><div class="actions">'+btn('close','Batal')+btn('confirmremove','Hapus','trash','dark',id)+'</div>')}
   let pendingPay=null;
   function doneFx(total){
@@ -411,6 +426,8 @@
    case 'nav':nav(id);break;case 'notif':openExpiry();break;case 'expdel':removeExpiry([id]);break;case 'expselect':expSelecting=!expSelecting;expSelected=new Set();renderExpiry();break;case 'expcheck':if(expSelected.has(id))expSelected.delete(id);else expSelected.add(id);renderExpiry();break;case 'expall':{const keys=activeExpiring().map(x=>x.key);expSelected=keys.every(k=>expSelected.has(k))?new Set():new Set(keys);renderExpiry();break}case 'expdelsel':removeExpiry([...expSelected]);break;case 'expclear':removeExpiry(activeExpiring().map(x=>x.key));break;case 'expreset':saveDismissed(new Set());renderExpiry();break;case 'expgo':close();nav('stok');break;case 'home':if(data)nav(Object.keys(db.menus).find(allowed));break;
    case 'account':selectMenu();account();break;case 'close':close();break;
    case 'category':category=id;render();catalogSwap();break;case 'add':case 'minus':{if(a==='minus'&&cart[id]===1&&!pending&&product(id)){askRemove(id);break}const before=totals().qty,had=(cart[id]||0)>0;changeQty(id,a);if(a==='add'&&button.closest('.card')&&totals().qty>before)cartFx(button,id,!had);break}
+   case 'cancelsale':{if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.','error');break}if(!totals().qty||clearing)break;if(await askConfirm('Batalkan transaksi?','Semua produk di keranjang akan dihapus dan diskon direset.','Batalkan','trash'))clearCart();break}
+   case 'searchgo':runSearch(id);break;
    case 'remove':{if(pending||!product(id)){changeQty(id,a);break}askRemove(id);break}
    case 'confirmpay':busy=true;await finishPayment(pendingPay);break;
    case 'confirmremove':{close();if(!pending){busy=true;await trashFx([...document.querySelectorAll('#cart .cartitem')].find(r=>r.dataset.pid===id))}changeQty(id,'remove');if(!cart[id])feedback('Produk dihapus dari keranjang.');break}
@@ -477,8 +494,7 @@
    await refresh();feedback('Perubahan disimpan.');
    }catch(ex){err(ex,form)}finally{busy=false;if(submit){submit.disabled=false;submit.classList.remove('loading')}}
   });
-  document.addEventListener('input',e=>{let t=e.target;if(t.id==='catalogsearch'){query=t.value;catalogSwap()}
-   if(t.id==='mgsearch'){mg.search=t.value;mg.pg={};repage()}
+  document.addEventListener('input',e=>{let t=e.target;if((t.id==='catalogsearch'||t.id==='mgsearch')&&t.value===''){runSearch(t.id)}
    if(t.form?.id==='businessform'&&t.name!=='logoFile')$('#receipt-preview').innerHTML=receiptPreview(receiptValues(t.form,draftLogo));
    if(t.name==='paid'&&$('#change'))$('#change').innerHTML=line('Kembalian',rp(Math.max(0,t.value-totals().total)));});
   document.addEventListener('change',async e=>{let t=e.target;
@@ -499,6 +515,7 @@
    if(e.key==='figiha.supabase'){db.logout();cartKey='';authError='';refresh();return}
    if(!db.config()&&e.key==='figiha.demo.v1'){if(!data||!dlg.open)refresh();else db.state().then(s=>{if(!s.me.owner&&(!s.me.menus.includes(page)||page==='pegawai')){close();refresh()}}).catch(()=>refresh())}
   });
+  document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='catalogsearch'||e.target.id==='mgsearch')){e.preventDefault();runSearch(e.target.id)}});
   document.addEventListener('keydown',e=>{if(dlg.open||document.body.classList.contains('side-modal')||page!=='kasir'||!data)return;if(e.key==='F2'){e.preventDefault();$('#catalogsearch').focus()}if(e.key==='F8'){e.preventDefault();payment()}});
   dlg.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
   dlg.addEventListener('close',()=>{if(!dlg.open){dlg.replaceChildren();editing=null}});
