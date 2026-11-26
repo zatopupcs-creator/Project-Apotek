@@ -36,7 +36,7 @@ const ApotekManagement = (() => {
    const tools=st.selecting
     ?'<div class="exptools"><span class="expcount">'+st.selected.size+' dipilih</span><div class="expbtns"><button type="button" class="btn" data-a="expall">'+(all?'Batal pilih semua':'Pilih semua')+'</button><button type="button" class="btn danger" data-a="expdelsel"'+(st.selected.size?'':' disabled')+'>Hapus</button><button type="button" class="btn" data-a="expselect">Batal</button></div></div>'
     :'<div class="exptools"><span class="expcount">'+items.length+' pengingat</span><div class="expbtns"><button type="button" class="btn" data-a="expselect">Pilih</button><button type="button" class="btn danger" data-a="expclear">Hapus semua</button>'+restore+'</div></div>';
-   return '<p class="expnote">'+items.length+' produk sudah kedaluwarsa atau akan kedaluwarsa dalam 30 hari.'+(st.selecting?'':' Geser ke kanan untuk menghapus.')+'</p>'+tools+'<div class="explist">'+expiryRows(items,st)+'</div><div class="actions"><button type="button" class="btn" data-a="close">Tutup</button><button type="button" class="btn dark" data-a="expgo">Lihat stok</button></div>';
+   return tools+'<div class="explist">'+expiryRows(items,st)+'</div><div class="actions"><button type="button" class="btn" data-a="close">Tutup</button><button type="button" class="btn dark" data-a="expgo">Lihat stok</button></div>';
   }
   const expiryNotice=(items,st)=>'<div id="expbox">'+expiryInner(items,st)+'</div>';
   const sizes=[10,25,50,100];
@@ -67,15 +67,9 @@ const ApotekManagement = (() => {
    if(page==='laporan')return reports(d);
    let title=menus[page];
    const add={stok:['product','Tambah produk'],suplier:['supplier','Tambah suplier'],pegawai:['employee','Tambah pegawai']}[page];
-   return head(title,add?btn(add[0],add[1],'plus','dark'):'')+'<div class="panel"><div class="panelhead">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir',produk:'nama produk, SKU, atau kategori'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
+   return head(title,add?btn(add[0],add[1],'plus','dark'):'')+'<div class="panel"><div class="panelhead">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
   }
   function managementRows(page,d){
-   if(page==='produk'){
-    const items=d.products.filter(p=>matches(p.name,p.sku,p.category,p.detail));
-    if(!items.length)return empty(mg.search?'Tidak ada hasil pencarian':'Belum ada produk','');
-    const pg=paginate('produk','produk',items);
-    return '<div class="products display">'+pg.items.map(p=>'<article class="card"><div class="photo">'+photo(p)+'</div><div class="cardbody"><span class="tag">'+h(p.category)+'</span><h3>'+h(p.name)+'</h3><span class="productdesc">'+h(p.detail||p.sku)+'</span><div class="cardbottom"><div><span class="price">'+rp(p.price)+'</span> <span class="unit">/ '+h(p.unit.toLowerCase())+'</span></div><div class="addcol"><span class="stocktag '+(p.stock===0?'zero':p.stock<=p.minimum?'low':'')+'">Stok '+h(p.stock)+'</span></div></div></div></article>').join('')+'</div>'+pg.html;
-   }
    let headers,rows,noun;
    if(page==='stok'){noun='produk';
    headers=['Produk','Kategori','Stok','Kedaluwarsa','Harga beli','Harga jual','Suplier',''];rows=d.products.filter(p=>matches(p.name,p.sku,p.category)).map(p=>{let s=find(d.suppliers,p.supplier);return row(item(p),h(p.category),'<b class="'+(p.stock<=p.minimum?'lowtext':'')+'">'+h(p.stock)+'</b>',expiryCell(p),'<span class="nw">'+rp(p.cost)+'</span>','<span class="nw">'+rp(p.price)+'</span>',s?btn('contact',s.name,'phone','',s.id):'—','<div class="rowactions">'+ib('product','Edit stok '+p.name,'edit',p.id)+ib('deleteproduct','Hapus '+p.name,'trash',p.id)+'</div>')});
