@@ -25,7 +25,6 @@ body.has-side #header{display:none}
 .snav-item:hover{background:#f3f5fa;color:#202632}
 .snav-item.current{background:#eef2fb;color:#111827;font-weight:650}
 .snav-item.current svg{color:#f26a1d}
-.snav-item.current::before{content:"";position:absolute;left:-10px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:#f26a1d}
 .snav-item:focus-visible,.snav-user:focus-visible,.snav-logout:focus-visible,.snav-label:focus-visible{outline:2px solid var(--orange);outline-offset:-2px}
 .snav-foot{padding:10px;border-top:1px solid #e9ecf3}
 .snav-user{display:flex;align-items:center;gap:10px;width:100%;padding:8px;text-align:left;border-radius:8px}
