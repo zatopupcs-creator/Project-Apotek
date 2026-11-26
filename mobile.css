@@ -111,10 +111,8 @@
  .square:hover:not(:disabled){transform:scale(1.1)}
  .iconbtn:hover{background:#f1f3f6;transform:scale(1.1)}
  .card:hover{transform:translateY(-3px);box-shadow:0 12px 26px #39240d16}
- .snav-item:hover{transform:translateX(3px)}
- .menu-toggle:hover{transform:scale(1.06)}
 }
-.btn:active:not(:disabled),.chip:active,.square:active:not(:disabled),.iconbtn:active,.menu-toggle:active,.snav-item:active,.snav-logout:active{transform:scale(.96)}
+.btn:active:not(:disabled),.chip:active,.square:active:not(:disabled),.iconbtn:active,.snav-item:active,.snav-logout:active{transform:scale(.96)}
 .control{transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease}
 .control:focus{outline:0;border-color:#202630;box-shadow:0 0 0 3px #20263018}
 .btn.loading{position:relative;color:transparent!important;pointer-events:none}
@@ -132,7 +130,7 @@ dialog[open]::backdrop{animation:fadein .24s ease}
 @keyframes toastin{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){
  .btn,.chip,.square,.iconbtn,.snav-item,.card{transition:none}
- .btn:hover,.chip:hover,.square:hover,.iconbtn:hover,.card:hover,.snav-item:hover,.menu-toggle:hover{transform:none}
+ .btn:hover,.chip:hover,.square:hover,.iconbtn:hover,.card:hover,.snav-item:hover{transform:none}
  .signin-card,dialog[open],dialog[open]::backdrop,#toast{animation:none}
 }
 #toast .okwrap{position:relative;display:grid;place-items:center;width:32px;height:32px;flex-shrink:0}
@@ -186,18 +184,18 @@ dialog[open]::backdrop{animation:fadein .24s ease}
 }
 body.no-anim *,body.no-anim *::before,body.no-anim *::after{transition:none!important}
 #cataloglist[aria-busy="true"] .card{pointer-events:none}
-.sk-brandlogo{width:56px;height:56px;border-radius:14px;flex-shrink:0}
-.sk-brandname{width:120px;height:22px}
-.sk-navlabel{width:100px;height:12px;margin:8px 0 16px 18px}
-.sk-navitem{display:flex;align-items:center;gap:14px;height:70px;padding:0 16px}
-.sk-navitem i:first-child{width:22px;height:22px;border-radius:6px;flex-shrink:0}
-.sk-navitem i:last-child{width:90px;height:14px}
+.sk-brandlogo{width:34px;height:34px;border-radius:8px;flex-shrink:0}
+.sk-brandname{width:110px;height:16px}
+.sk-navlabel{width:90px;height:10px;margin:16px 0 10px 10px}
+.sk-navitem{display:flex;align-items:center;gap:12px;height:40px;padding:0 12px}
+.sk-navitem i:first-child{width:19px;height:19px;border-radius:5px;flex-shrink:0}
+.sk-navitem i:last-child{width:90px;height:12px}
 .sk-user{display:flex;align-items:center;gap:12px;padding:8px}
-.sk-avatar{width:66px;height:66px;border-radius:50%;flex-shrink:0}
+.sk-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0}
 .sk-user div{display:grid;gap:8px}
 .sk-user div i{width:92px;height:14px}
 .sk-user div i+i{width:60px;height:12px}
-.sk-logout{height:68px;border-radius:16px}
+.sk-logout{height:40px;border-radius:8px;margin-top:4px}
 .floatfield{position:relative;display:block}
 .floatfield .inputicon{display:block}
 .floatfield label{position:absolute;left:46px;top:50%;transform:translateY(-50%);padding:0 6px;margin-left:-6px;color:#6b7280;font-size:1rem;font-weight:400;line-height:1.2;pointer-events:none;background:#fff;transition:top .18s ease,left .18s ease,font-size .18s ease,color .18s ease,font-weight .18s ease}
