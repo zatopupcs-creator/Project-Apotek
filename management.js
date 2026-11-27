@@ -3,7 +3,7 @@ const ApotekManagement = (() => {
   const {categories,menus} = ApotekData;
   const atDate=s=>new Date(new Date(s).getTime()+7*3600000).toISOString();
   const today=()=>atDate(Date.now()).slice(0,10);
-  const mg={search:'',period:'hari',preset:'bulan',size:10,pg:{},...ApotekDates.presetRange('bulan')};
+  const mg={rw:{preset:'semua',from:null,to:null},search:'',period:'hari',preset:'bulan',size:10,pg:{},...ApotekDates.presetRange('bulan')};
   const find=(array,id)=>array.find(x=>x.id===id);
   const matches=(...values)=>values.join(' ').toLowerCase().includes(mg.search.toLowerCase());
   const pic=p=>'<span class="thumb">'+photo(p)+'</span>';
@@ -63,13 +63,22 @@ const ApotekManagement = (() => {
    return table(headers,p.items)+p.html;
   }
   function goPage(key,n){mg.pg[key]=Math.max(1,n)}
+  function inRange(sales,r){
+   if(!r.from||!r.to)return sales;
+   const a=ApotekDates.ms(r.from,false),b=ApotekDates.ms(r.to,true);
+   return sales.filter(x=>{const t=new Date(x.at).getTime();return t>=a&&t<=b});
+  }
+  function historyFilter(d){
+   const first=d.sales.reduce((n,x)=>Math.min(n,new Date(x.at).getTime()),Infinity),since=Number.isFinite(first)?ApotekDates.wall(first).slice(0,10):'';
+   return '<div class="rwfilter"><div class="fieldbox"><span>Rentang waktu</span><button type="button" class="control selbtn rangebtn" data-dp="range" data-scope="riwayat" data-reset="semua" data-since="'+h(since)+'" aria-haspopup="dialog">'+icon('calendar',17)+'<span><span class="dlong">'+h(rangeText(mg.rw))+'</span><span class="dshort">'+h(rangeShort(mg.rw))+'</span></span>'+icon('down',16)+'</button></div></div>';
+  }
   function management(page,d){
    if(page==='laporan')return reports(d);
    let title=menus[page];
    const add={stok:['product','Tambah produk'],suplier:['supplier','Tambah suplier'],pegawai:['employee','Tambah pegawai']}[page];
    const fab=add?btn(add[0],add[1],'plus','dark fab','','aria-label="'+h(add[1])+'"'):'';
    const toggle='<button type="button" class="searchtoggle'+(mg.searchOpen?' on':'')+'" data-a="searchtoggle" aria-label="Cari" aria-expanded="'+Boolean(mg.searchOpen)+'">'+icon('search',20)+'</button>';
-   return head(title,fab+toggle)+'<div class="panel"><div class="panelhead msearch'+(mg.searchOpen||mg.search?' open':'')+'">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
+   return head(title,fab+toggle)+(page==='riwayat'?historyFilter(d):'')+'<div class="panel"><div class="panelhead msearch'+(mg.searchOpen||mg.search?' open':'')+'">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
   }
   function managementRows(page,d){
    let headers,rows,noun;
@@ -86,9 +95,9 @@ const ApotekManagement = (() => {
      '<span class="status '+(status==='Aktif'?'':'demo')+'">'+status+'</span>',ib('employee','Edit akun '+s.name,'edit',s.id));
    });
    }else{noun='transaksi';
-   headers=['No. struk','Waktu','Kasir','Item','Metode','Total',''];rows=d.sales.filter(s=>matches(nomor(s),s.cashier,s.items.map(i=>i.name).join(' '))).map(s=>row('<b>'+h(nomor(s))+'</b>',date(s.at,{dateStyle:'medium',timeStyle:'short'}),h(s.cashier),s.items.reduce((n,i)=>n+i.qty,0),h(s.method),rp(s.total),btn('receipt','Struk','receipt','',s.id)));
+   headers=['No. struk','Waktu','Kasir','Item','Metode','Total',''];rows=inRange(d.sales,mg.rw).filter(s=>matches(nomor(s),s.cashier,s.items.map(i=>i.name).join(' '))).map(s=>row('<b>'+h(nomor(s))+'</b>',date(s.at,{dateStyle:'medium',timeStyle:'short'}),h(s.cashier),s.items.reduce((n,i)=>n+i.qty,0),h(s.method),rp(s.total),btn('receipt','Struk','receipt','',s.id)));
    }
-   return rows.length?paged(page,noun,headers,rows):empty(mg.search?'Tidak ada hasil pencarian':'Belum ada data',page==='riwayat'?'Transaksi yang selesai akan muncul di sini.':'');
+   return rows.length?paged(page,noun,headers,rows):empty(mg.search||(page==='riwayat'&&mg.rw.from)?'Tidak ada hasil':'Belum ada data',page==='riwayat'?'Transaksi yang selesai akan muncul di sini.':'');
   }
   function productForm(p={},d){
    const f=(l,n,o={})=>field(l,n,p[n]??'',o),num=(l,n,v)=>field(l,n,p[n]??v,{type:'number',required:true,min:0,extra:'step="1" max="2147483647"'});
@@ -120,10 +129,10 @@ const ApotekManagement = (() => {
    const a=ApotekDates.ms(mg.from,false),b=ApotekDates.ms(mg.to,true);
    return d.sales.filter(s=>{const t=new Date(s.at).getTime();return t>=a&&t<=b});
   }
-  const rangeText=()=>mg.preset==='semua'||!mg.from?'Semua tanggal':ApotekDates.label(mg.from)+' → '+ApotekDates.label(mg.to);
-  const rangeShort=()=>{
-   if(mg.preset==='semua'||!mg.from)return 'Semua tanggal';
-   const D=ApotekDates,f=mg.from,t=mg.to||mg.from,fd=f.slice(0,10),td=t.slice(0,10),ft=f.slice(11,16),tt=t.slice(11,16);
+  const rangeText=(r=mg)=>r.preset==='semua'||!r.from?'Semua tanggal':ApotekDates.label(r.from)+' → '+ApotekDates.label(r.to);
+  const rangeShort=(r=mg)=>{
+   if(r.preset==='semua'||!r.from)return 'Semua tanggal';
+   const D=ApotekDates,f=r.from,t=r.to||r.from,fd=f.slice(0,10),td=t.slice(0,10),ft=f.slice(11,16),tt=t.slice(11,16);
    const p=D.parse(fd),q=D.parse(td),dm=x=>x.d+' '+D.SHORT[x.m],full=(!ft||ft==='00:00')&&(!tt||tt==='23:59');
    if(full)return fd===td?dm(p)+' '+p.y:p.y===q.y?dm(p)+' – '+dm(q)+' '+q.y:dm(p)+' '+p.y+' – '+dm(q)+' '+q.y;
    return dm(p)+(p.y===q.y?'':' '+p.y)+', '+ft+' – '+dm(q)+' '+q.y+', '+tt;
