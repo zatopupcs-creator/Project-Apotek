@@ -114,3 +114,33 @@ main:has(.login-stage){padding:0}
 .products .card{background:#fff}
 .photo{background:#fff}
 .photo img{filter:brightness(1.08) contrast(1.02)}
+
+/* Halaman kelola (Stok, Suplier, Pegawai, Riwayat) di HP */
+.searchtoggle{display:none}
+@media(max-width:720px){
+ /* 1. Tombol tambah jadi bulat, melayang tepat di atas navbar */
+ .btn.fab{position:fixed;z-index:37;right:max(16px,calc(50% - 216px));bottom:calc(86px + env(safe-area-inset-bottom,0px));width:56px;height:56px;min-height:0;padding:0;border-radius:50%;justify-content:center;gap:0;font-size:0;box-shadow:0 8px 22px #20263050}
+ .btn.fab svg{width:24px;height:24px}
+ .btn.fab:hover:not(:disabled){transform:none}
+ .btn.fab:active:not(:disabled){transform:scale(.92)}
+ body.subpage .btn.fab{bottom:calc(24px + env(safe-area-inset-bottom,0px));right:20px}
+ body.has-side:not(.cartpage) main:has(.fab){padding-bottom:64px}
+
+ /* 2. Cari: cukup ikon di atas, kolom isian muncul saat diklik */
+ .searchtoggle{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid #e6e9f0;background:#fff;color:#202632;box-shadow:0 2px 12px #1b263d14;transition:background-color .15s,color .15s,transform .15s}
+ .searchtoggle:active{transform:scale(.94)}
+ .searchtoggle.on{background:#202630;color:#fff;border-color:#202630}
+ .subact .searchtoggle{width:40px;height:40px;box-shadow:none}
+ .msearch{display:none!important}
+ .msearch.open{display:flex!important;margin-bottom:12px;animation:searchdrop .2s ease}
+ @keyframes searchdrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+ /* 3. Produk memenuhi lebar layar, tanpa kartu pembungkus */
+ main>.panel:has(>#mgrows){padding:0;background:none;border:0;box-shadow:none;border-radius:0}
+
+ /* 4. "Menampilkan 1–7 dari 7 produk" pindah ke atas daftar */
+ .pager{display:contents}
+ .pgtext{order:-1;margin:0 0 12px 2px;font-size:.84rem}
+ .pgctrl{order:1;margin-top:4px;padding-top:16px;border-top:1px solid var(--line)}
+}
+@media(prefers-reduced-motion:reduce){.msearch.open{animation:none}}
