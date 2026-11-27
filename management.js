@@ -51,7 +51,7 @@ const ApotekManagement = (() => {
    const nums=pageList(cur,pages).map(n=>n==='…'?'<span class="pgdots" aria-hidden="true">…</span>':'<button type="button" class="pgnum'+(n===cur?' on':'')+'" data-a="pgto" data-id="'+key+':'+n+'" aria-label="Halaman '+n+'"'+(n===cur?' aria-current="page"':'')+'>'+n+'</button>').join('');
    const opts=sizes.map(n=>[String(n),String(n)]);
    const size='<div class="selectbox pgsel"><input type="hidden" name="pgsize" value="'+mg.size+'" data-options="'+h(JSON.stringify(opts))+'"><button type="button" class="control selbtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Baris per halaman"><span>'+mg.size+'</span>'+icon('down',16)+'</button></div>';
-   return '<div class="pager"><span class="pgtext">Menampilkan '+(from+1)+'–'+(from+count)+' dari '+total+' '+noun+'</span><div class="pgctrl"><span class="pglabel">Baris per halaman</span>'+size+'<div class="pgnav">'+arrow(cur-1,cur<=1,'Halaman sebelumnya',90)+nums+arrow(cur+1,cur>=pages,'Halaman berikutnya',-90)+'</div></div></div>';
+   return '<div class="pager"><span class="pgtext">Menampilkan '+(from+1)+'–'+(from+count)+' dari '+total+' '+noun+'</span><div class="pgctrl"><span class="pglabel">Baris per halaman</span>'+size+'<div class="pgnav'+(pages<=1?' single':'')+'">'+arrow(cur-1,cur<=1,'Halaman sebelumnya',90)+nums+arrow(cur+1,cur>=pages,'Halaman berikutnya',-90)+'</div></div></div>';
   }
   function paginate(key,noun,items){
    const size=mg.size,pages=Math.max(1,Math.ceil(items.length/size)),cur=Math.min(Math.max(1,mg.pg[key]||1),pages),from=(cur-1)*size,slice=items.slice(from,from+size);
