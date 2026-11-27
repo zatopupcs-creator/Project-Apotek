@@ -150,12 +150,8 @@ main:has(.login-stage){padding:0}
  html body.has-side .btn.fab{position:fixed;width:56px;height:56px;min-height:0;min-width:0;padding:0;gap:0;border-radius:50%;font-size:0;line-height:0;justify-content:center;overflow:hidden}
  html body.has-side .btn.fab svg{width:26px;height:26px;flex:none}
  html body.subpage.has-side .btn.fab{bottom:calc(24px + env(safe-area-inset-bottom,0px));right:20px}
- html body.has-side:not(.cartpage) main:has(.fab)+.sitefoot{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
- html body.subpage.has-side main:has(.fab)+.sitefoot{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
-}
-/* Menu Pengaturan (HP): copyright dinaikkan */
-@media(max-width:999px){
- html body.has-side:not(.cartpage) main:has(.moremenu)+.sitefoot{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))}
+ html body.has-side:not(.cartpage) main:has(.fab)~.sitefoot{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+ html body.subpage.has-side main:has(.fab)~.sitefoot{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 }
 
 /* Kontrol halaman (baris per halaman, nomor halaman) pindah ke atas daftar */
@@ -172,15 +168,12 @@ main:has(.login-stage){padding:0}
  main .pgctrl{row-gap:12px}
 }
 
-/* Menu Pengaturan (HP): copyright dinaikkan lagi supaya jelas terlihat */
-@media(max-width:999px){
- html body.has-side:not(.cartpage) main:has(.moremenu)+.sitefoot{padding-top:24px!important;padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))!important}
-}
 
 /* Riwayat: filter rentang tanggal */
 html body main>.panel.rwfilter{flex:none;display:block;margin:0 0 16px}
 
-/* Menu Pengaturan (HP): copyright dihilangkan */
+
+/* Menu Pengaturan (HP): copyright dinaikkan (hanya halaman ini) */
 @media(max-width:999px){
- html body.has-side main:has(.moremenu)+.sitefoot{display:none!important}
+ html body.has-side:not(.cartpage) main:has(.moremenu)~.sitefoot{padding-top:14px!important;padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))!important}
 }
