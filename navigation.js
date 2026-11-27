@@ -56,13 +56,20 @@ const ApotekNavigation = (() => {
    document.querySelector('link[rel="icon"]').href=logo;
    document.getElementById('header').innerHTML=user?'':'<div class="headinner revised-head"><span class="brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></span></div>';
    const bnav=document.getElementById('bottomnav');
-   if(!user){isOpen=false;pane.innerHTML='';if(bnav)bnav.innerHTML='';sync();return}
+   if(!user){isOpen=false;pane.innerHTML='';if(bnav){bnav.innerHTML='';bnav.dataset.sig=''}sync();return}
    if(bnav){
     const ok=m=>Object.hasOwn(menus,m)&&can(m);
     const base=['kasir','stok','laporan'].filter(ok),extra=['riwayat','suplier','pegawai'].filter(ok);
     const three=[...base,...extra].slice(0,3).map(m=>({id:m,label:menus[m],action:'nav',ico:m}));
     const last=ok('pengaturan')?{id:'pengaturan',label:menus.pengaturan,action:'nav',ico:'pengaturan'}:{id:'akun',label:'Akun',action:'account',ico:'user'};
-    bnav.innerHTML=[...three,last].map(it=>{const cur=it.action==='nav'&&page===it.id;return '<button type="button" class="bn-item'+(cur?' current':'')+'" data-a="'+it.action+'" data-id="'+it.id+'" title="'+h(it.label)+'" aria-label="'+h(it.label)+'" '+(cur?'aria-current="page"':'')+'>'+icon(it.ico,22)+'<span class="bn-label">'+h(it.label)+'</span></button>'}).join('');
+    const items=[...three,last],sig=items.map(i=>i.action+':'+i.id).join('|');
+    const curOf=it=>it.action==='nav'&&(page===it.id||(it.id==='pengaturan'&&!three.some(t=>t.id===page)));
+    if(bnav.dataset.sig===sig){
+     bnav.querySelectorAll('.bn-item').forEach((el,i)=>{const c=curOf(items[i]);el.classList.toggle('current',c);if(c)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});
+    }else{
+     bnav.dataset.sig=sig;
+     bnav.innerHTML=items.map(it=>{const cur=curOf(it);return '<button type="button" class="bn-item'+(cur?' current':'')+'" data-a="'+it.action+'" data-id="'+it.id+'" title="'+h(it.label)+'" aria-label="'+h(it.label)+'" '+(cur?'aria-current="page"':'')+'>'+icon(it.ico,22)+'<span class="bn-label">'+h(it.label)+'</span></button>'}).join('');
+    }
    }
 
    const sections=[['Utama',['kasir']],['Operasional',['suplier','stok']],['Laporan',['laporan','riwayat']],['Pengelolaan',['pegawai','pengaturan']]];
