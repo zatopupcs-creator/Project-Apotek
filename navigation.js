@@ -56,9 +56,14 @@ const ApotekNavigation = (() => {
    document.querySelector('link[rel="icon"]').href=logo;
    document.getElementById('header').innerHTML=user?'':'<div class="headinner revised-head"><span class="brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></span></div>';
    if(!user){isOpen=false;pane.innerHTML='';sync();return}
-   const links=Object.entries(menus).filter(([m])=>can(m)).map(([m,label])=>'<button type="button" class="snav-item '+(page===m?'current':'')+'" data-a="nav" data-id="'+m+'" '+(page===m?'aria-current="page"':'')+'>'+icon(m,20)+'<span>'+h(label)+'</span></button>').join('');
+   const sections=[['Utama',['kasir']],['Operasional',['suplier','stok']],['Laporan',['laporan','riwayat']],['Pengelolaan',['pegawai','pengaturan']]];
+   const item=m=>'<button type="button" class="snav-item '+(page===m?'current':'')+'" data-a="nav" data-id="'+m+'" '+(page===m?'aria-current="page"':'')+'>'+icon(m,20)+'<span>'+h(menus[m])+'</span>'+(m==='kasir'?'':'<i class="snav-chev">'+icon('right',16)+'</i>')+'</button>';
+   const groups=sections.map(([title,keys])=>{
+    const shown=keys.filter(m=>Object.hasOwn(menus,m)&&can(m));
+    return shown.length?'<div class="snav-group"><div class="snav-label">'+h(title.toUpperCase())+'</div><div class="snav-items">'+shown.map(item).join('')+'</div></div>':'';
+   }).join('');
    pane.innerHTML='<div class="snav-brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></div>'+
-    '<nav class="snav-scroll" aria-label="Menu utama"><div class="snav-group'+(groupCollapsed?' collapsed':'')+'"><button type="button" class="snav-label" data-a="togglegroup" aria-expanded="'+(!groupCollapsed)+'"><span>MENU UTAMA</span>'+icon('down',16)+'</button><div class="snav-items">'+links+'</div></div></nav>'+
+    '<nav class="snav-scroll" aria-label="Menu utama">'+groups+'</nav>'+
     '<div class="snav-foot"><button type="button" data-a="account" class="snav-user"><span class="avatar">'+h(user.name.trim().slice(0,2).toUpperCase())+'</span><span class="who"><strong>'+h(user.name)+'</strong><small>'+h(user.owner?'Pemilik':user.employee_code||'Pegawai')+'</small></span></button>'+
     btn('logout','Keluar','logout','snav-logout')+'</div>';
    const scroller=pane.querySelector('.snav-scroll');
