@@ -171,3 +171,8 @@ main:has(.login-stage){padding:0}
  main .pgarrow,main .pgnum{min-width:36px;height:36px;font-size:.9rem;border-radius:10px}
  main .pgctrl{row-gap:12px}
 }
+
+/* Menu Pengaturan (HP): copyright dinaikkan lagi supaya jelas terlihat */
+@media(max-width:999px){
+ html body.has-side:not(.cartpage) main:has(.moremenu)+.sitefoot{padding-top:24px!important;padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))!important}
+}
