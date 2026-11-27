@@ -55,9 +55,14 @@ const ApotekSettings = (() => {
    const sample={business:b,number:1,cashier:'Kasir contoh',at:Date.now(),items:[{name:'Produk contoh',price:10000,qty:1}],subtotal:10000,discount:0,total:10000,method:'Tunai',paid:10000,change:0};
    return ticket(sample);
   }
+  function moreMenu(d){
+   const items=[['suplier','Suplier'],['riwayat','Riwayat'],['pegawai','Pegawai']].filter(([m])=>d.me.owner||(d.me.menus||[]).includes(m));
+   const link=(a,id,l,ic)=>'<button type="button" class="morelink" data-a="'+a+'"'+(id?' data-id="'+id+'"':'')+'>'+icon(ic,20)+'<span>'+l+'</span>'+(a==='nav'?icon('right',16):'')+'</button>';
+   return '<section class="moremenu" aria-label="Menu lainnya"><h2>Menu lainnya</h2><div class="morelist">'+items.map(([m,l])=>link('nav',m,l,m)).join('')+link('account','','Akun saya','user')+link('logout','','Keluar','logout')+'</div></section>';
+  }
   function settingsView(d,tab,draftLogo){
    const tabs=[['bisnis','Bisnis & struk','receipt'],...(d.me.owner?[['akun','Akun login','pegawai'],['koneksi','Database','database']]:[])];
-   const nav='<div class="settingsnav">'+tabs.map(([id,l,ic])=>btn('tab',l,ic,tab===id?'dark':'',id)).join('')+'</div>';
+   const nav='<div class="settingsnav">'+tabs.map(([id,l,ic])=>btn('tab',l,ic,tab===id?'dark':'',id)).join('')+'</div>'+moreMenu(d);
    const heading=head('Pengaturan');
    if(tab==='koneksi'&&d.me.owner)return heading+nav+'<div class="panel settingsbox">'+connectionView()+'</div>';
    if(tab==='akun'&&d.me.owner)return heading+nav+'<section class="panel"><div class="panelhead"><h2>Akun login</h2>'+btn('employee','Tambah akun','plus','dark')+'</div><div class="panelhead">'+search('mgsearch',mg.search,'Cari nama, username, atau ID…')+'</div><div id="mgrows">'+managementRows('pegawai',d)+'</div></section>';
