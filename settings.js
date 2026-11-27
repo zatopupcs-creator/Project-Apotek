@@ -59,9 +59,12 @@ const ApotekSettings = (() => {
    const sub={bisnis:'Nama apotek, logo, dan isi struk',akun:'Kelola akun login pegawai',koneksi:'Koneksi database'};
    const row=(a,id,l,ic,s,cls)=>'<button type="button" class="morelink'+(cls?' '+cls:'')+'" data-a="'+a+'"'+(id?' data-id="'+id+'"':'')+'><span class="mico">'+icon(ic,20)+'</span><span class="mtxt"><b>'+l+'</b>'+(s?'<small>'+s+'</small>':'')+'</span>'+(a==='logout'?'':icon('right',16))+'</button>';
    const items=[['suplier','Suplier'],['riwayat','Riwayat'],['pegawai','Pegawai']].filter(([m])=>d.me.owner||(d.me.menus||[]).includes(m));
-   return '<section class="moremenu"><h2>Pengaturan</h2><div class="morelist">'+tabs.map(([id,l,ic])=>row('setopen',id,l,ic,sub[id])).join('')+'</div></section>'+
+   const nm=String(d.me.name||'').trim()||'Pengguna',role=d.me.owner?'Pemilik':(d.me.employee_code||'Pegawai');
+   const profile='<button type="button" class="profilecard" data-a="account" aria-label="Lihat akun"><span class="pavatar">'+h(nm.slice(0,2).toUpperCase())+'</span><span class="mtxt"><b>'+h(nm)+'</b><small>'+h(role)+'</small></span>'+icon('right',16)+'</button>';
+   return profile+
+    '<section class="moremenu"><h2>Pengaturan</h2><div class="morelist">'+tabs.map(([id,l,ic])=>row('setopen',id,l,ic,sub[id])).join('')+'</div></section>'+
     (items.length?'<section class="moremenu"><h2>Menu lainnya</h2><div class="morelist">'+items.map(([m,l])=>row('nav',m,l,m)).join('')+'</div></section>':'')+
-    '<section class="moremenu"><h2>Akun</h2><div class="morelist">'+row('account','','Akun saya','user','Lihat akun yang sedang masuk')+row('logout','','Keluar','logout','','danger')+'</div></section>';
+    '<section class="moremenu"><div class="morelist">'+row('logout','','Keluar','logout','','danger')+'</div></section>';
   }
   function settingsView(d,tab,draftLogo,mode){
    const tabs=[['bisnis','Bisnis & struk','receipt'],...(d.me.owner?[['akun','Akun login','pegawai'],['koneksi','Database','database']]:[])];
