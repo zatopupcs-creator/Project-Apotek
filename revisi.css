@@ -144,3 +144,22 @@ main:has(.login-stage){padding:0}
  .pgctrl{order:1;margin-top:4px;padding-top:16px;border-top:1px solid var(--line)}
 }
 @media(prefers-reduced-motion:reduce){.msearch.open{animation:none}}
+
+/* Perbaikan: tombol tambah hanya ikon (+), copyright tidak tertimpa */
+@media(max-width:720px){
+ html body.has-side .btn.fab{position:fixed;width:56px;height:56px;min-height:0;min-width:0;padding:0;gap:0;border-radius:50%;font-size:0;line-height:0;justify-content:center;overflow:hidden}
+ html body.has-side .btn.fab svg{width:26px;height:26px;flex:none}
+ html body.subpage.has-side .btn.fab{bottom:calc(24px + env(safe-area-inset-bottom,0px));right:20px}
+ html body.has-side:not(.cartpage) main:has(.fab)+.sitefoot{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+ html body.subpage.has-side main:has(.fab)+.sitefoot{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+}
+/* Menu Pengaturan (HP): copyright dinaikkan */
+@media(max-width:999px){
+ html body.has-side:not(.cartpage) main:has(.moremenu)+.sitefoot{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))}
+}
+
+/* Kontrol halaman (baris per halaman, nomor halaman) pindah ke atas daftar */
+@media(max-width:720px){
+ main .pgtext{order:-2;margin:0 0 10px 2px}
+ main .pgctrl{order:-1;margin:0 0 16px;padding:0 0 16px;border-top:0;border-bottom:1px solid var(--line)}
+}
