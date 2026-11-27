@@ -14,6 +14,8 @@
   function saveNav(){try{const m=data.me;localStorage.setItem(navKey,JSON.stringify({name:m.name,owner:Boolean(m.owner),employee_code:m.employee_code||'',menus:m.menus||[]}))}catch{}}
   function loadNav(){try{const v=JSON.parse(localStorage.getItem(navKey)||'null');if(v&&typeof v.name==='string'&&Array.isArray(v.menus))return v}catch{}return null}
   function saveBrand(){try{localStorage.setItem(brandKey,JSON.stringify(brand))}catch{}}
+  const NAVORDER=['kasir','stok','laporan','riwayat','suplier','pegawai','pengaturan'],mobileUI=()=>matchMedia('(max-width:999px)').matches;
+  let navDir='r',settingsOpen=false;
   let data,page=location.hash.slice(1)||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
   let brand=loadBrand(),draftLogo='',refreshId=0,employeeDraftId='',logoTask=null;
   if(page==='keranjang')page='kasir';
@@ -112,6 +114,12 @@
   const loadMs=1000,skeletonMs=700;
   let swapTimer;
   function renderSwap(){
+   if(mobileUI()){
+    render();
+    const m=$('#main');if(!data||!m)return;
+    scrollTo(0,0);m.classList.remove('pgr','pgl');void m.offsetWidth;m.classList.add(navDir==='l'?'pgl':'pgr');navDir='r';
+    return;
+   }
    render();
    const main=$('#main');if(!data||!main)return;
    const real=main.innerHTML;
@@ -194,7 +202,7 @@
    if((e.key===' '||e.key==='Enter')&&e.target.matches?.('.expitem.selecting')){e.preventDefault();e.target.click()}
   });
   function nav(m){
-   if(!allowed(m))return;selectMenu();cartPushed=false;dbUnlocked=false;page=m;mg.search='';mg.pg={};draftLogo=data.settings.logo||'';
+   if(!allowed(m))return;selectMenu();cartPushed=false;dbUnlocked=false;settingsOpen=false;navDir=NAVORDER.indexOf(m)<NAVORDER.indexOf(page)?'l':'r';page=m;mg.search='';mg.pg={};draftLogo=data.settings.logo||'';
    if(location.hash!=='#'+m)location.hash=m;renderSwap();
   }
   function render(){
@@ -206,12 +214,13 @@
    $('#header').className='sitehead';
    renderNavigation(data?.me,page,brand,allowed);
    syncCartPage();
+   document.body.classList.toggle('subpage',Boolean(data&&page==='pengaturan'&&mobileUI()&&settingsOpen));
    if(!data){$('#main').innerHTML=loginView('',brand.name,brand.logo);if(authError){feedback(authError,'error');authError=''}return}
-   $('#main').innerHTML=page==='kasir'?pos():page==='pengaturan'?settingsView(data,settingsTab,draftLogo):page==='noaccess'?empty('Belum ada menu yang diizinkan','Hubungi pemilik untuk mengatur akses akun Anda.'):management(page,data);
+   $('#main').innerHTML=page==='kasir'?pos():page==='pengaturan'?settingsView(data,settingsTab,draftLogo,mobileUI()?(settingsOpen?'detail':'list'):''):page==='noaccess'?empty('Belum ada menu yang diizinkan','Hubungi pemilik untuk mengatur akses akun Anda.'):management(page,data);
    updateBell();
   }
   function signOut(){
-   db.logout();try{localStorage.removeItem(navKey)}catch{}close();dbUnlocked=false;data=null;authError='';cartKey='';currentSale=null;cart={};pending=false;settingsTab='bisnis';
+   db.logout();try{localStorage.removeItem(navKey)}catch{}close();dbUnlocked=false;data=null;authError='';cartKey='';currentSale=null;cart={};pending=false;settingsTab='bisnis';settingsOpen=false;
    page='kasir';if(location.hash)history.replaceState(null,'',location.pathname+location.search);
    return refresh();
   }
@@ -469,7 +478,7 @@
    case 'employee':if(id&&data.staff.find(x=>x.id===id)?.owner){askUnlock(()=>edit('employee',id),'owner');break}edit(a,id);break;
    case 'product':case 'supplier':edit(a,id);break;
    case 'contact':{let s=data.suppliers.find(s=>s.id===id);modal(s.name,contact(s,data.products)+(allowed('suplier')?'<div class="actions">'+btn('supplier','Edit suplier','edit','',s.id)+'</div>':''));break}
-   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'tab':{const go=()=>{settingsTab=id;draftLogo=data.settings.logo||'';mg.search='';mg.pg={};renderSwap()};if(id==='koneksi'&&!dbUnlocked){askUnlock(go);break}if(id!=='koneksi')dbUnlocked=false;go();break}case 'opensettings':close();nav('pengaturan');break;
+   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'setback':settingsOpen=false;dbUnlocked=false;navDir='l';renderSwap();break;case 'setopen':case 'tab':{const go=()=>{settingsTab=id;if(a==='setopen')settingsOpen=true;draftLogo=data.settings.logo||'';mg.search='';mg.pg={};renderSwap()};if(id==='koneksi'&&!dbUnlocked){askUnlock(go);break}if(id!=='koneksi')dbUnlocked=false;go();break}case 'opensettings':close();nav('pengaturan');break;
    case 'connection':if(owner()&&!dbUnlocked)askUnlock(()=>modal('Pengaturan database',connectionView()));else if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
@@ -539,6 +548,7 @@
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList?.contains('qtyinput')){e.preventDefault();e.target.blur()}});
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='catalogsearch'||e.target.id==='mgsearch')){e.preventDefault();runSearch(e.target.id)}});
   document.addEventListener('keydown',e=>{if(dlg.open||document.body.classList.contains('side-modal')||page!=='kasir'||!data)return;if(e.key==='F2'){e.preventDefault();$('#catalogsearch').focus()}if(e.key==='F8'){e.preventDefault();payment()}});
+  matchMedia('(max-width:999px)').addEventListener('change',()=>{if(data&&page==='pengaturan')render()});
   dlg.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
   dlg.addEventListener('close',()=>{if(!dlg.open){dlg.replaceChildren();editing=null}});
   if(db.session()){
