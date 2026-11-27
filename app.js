@@ -15,7 +15,7 @@
   function loadNav(){try{const v=JSON.parse(localStorage.getItem(navKey)||'null');if(v&&typeof v.name==='string'&&Array.isArray(v.menus))return v}catch{}return null}
   function saveBrand(){try{localStorage.setItem(brandKey,JSON.stringify(brand))}catch{}}
   const NAVORDER=['kasir','stok','laporan','riwayat','suplier','pegawai','pengaturan'],mobileUI=()=>matchMedia('(max-width:999px)').matches;
-  let navDir='r',settingsOpen=false,subPushed=false;
+  let navDir='r',settingsOpen=false,subPushed=false,navSlide=false;
   const isTab=m=>(document.querySelector('#bottomnav')?.dataset.ids||'').split(',').includes(m);
   const SUBMENUS=['suplier','riwayat','pegawai'];
   let data,page=location.hash.slice(1).split('/')[0]||'kasir',query='',category='Semua',sort='default',available=false,cart={},discount=0,cartKey='',orderId='',settingsTab='bisnis',editing=null,currentSale=null,authError='',pending=false,timer,busy=false;
@@ -120,14 +120,17 @@
   const loadMs=1000,skeletonMs=700;
   let swapTimer;
   function renderSwap(){
-   if(mobileUI()){
+   if(mobileUI()&&navSlide){
+    navSlide=false;
     render();
     const m=$('#main');if(!data||!m)return;
     scrollTo(0,0);const f=$('#sitefoot'),cls=navDir==='l'?'pgl':'pgr';[m,f].forEach(e=>e&&e.classList.remove('pgr','pgl'));void m.offsetWidth;[m,f].forEach(e=>e&&e.classList.add(cls));navDir='r';
     return;
    }
+   navSlide=false;
    render();
    const main=$('#main');if(!data||!main)return;
+   [main,$('#sitefoot')].forEach(e=>e&&e.classList.remove('pgr','pgl'));
    const real=main.innerHTML;
    main.innerHTML=skeleton();main.setAttribute('aria-busy','true');scrollTo(0,0);
    swapTimer=setTimeout(()=>{if(!data)return;main.innerHTML=real;main.removeAttribute('aria-busy');updateBell();showTableLoading()},skeletonMs);
@@ -211,7 +214,7 @@
    if(!allowed(m))return;
    if(mobileUI()&&m==='kasir'&&rootIsKasir&&histDepth()>0&&!isSubPage()){selectMenu();cartPushed=false;dbUnlocked=false;navDir='l';history.go(-histDepth());return}
    selectMenu();cartPushed=false;dbUnlocked=false;const prevPage=page,fromList=page==='pengaturan'&&!settingsOpen;settingsOpen=false;navDir=NAVORDER.indexOf(m)<NAVORDER.indexOf(page)?'l':'r';page=m;mg.search='';mg.pg={};draftLogo=data.settings.logo||'';
-   if(mobileUI()){if(fromList&&!isTab(m))navDir='r';const d=histDepth();if(m!==prevPage)history.pushState({d:d+1},'','#'+m);else history.replaceState({d},'','#'+m)}else if(location.hash!=='#'+m)location.hash=m;
+   if(mobileUI()){if(fromList&&!isTab(m)){navDir='r';navSlide=true}const d=histDepth();if(m!==prevPage)history.pushState({d:d+1},'','#'+m);else history.replaceState({d},'','#'+m)}else if(location.hash!=='#'+m)location.hash=m;
    renderSwap();
   }
   function render(){
@@ -233,6 +236,7 @@
    return html.replace(/^<div class="pagehead"><div><h1>([^<]*)<\/h1><\/div>([\s\S]*?)<button type="button" class="bellbtn"[\s\S]*?<\/button><\/div>/,(_,t,act)=>'<div class="subhead"><button type="button" class="subback" data-a="setback" aria-label="Kembali">'+icon('back',22)+'</button><h1>'+t+'</h1>'+(act?'<span class="subact">'+act+'</span>':'')+'</div>');
   }
   function closeSub(){
+   navSlide=true;
    if(histDepth()>0){history.back();return}
    history.replaceState({d:0},'',location.pathname+location.search+'#pengaturan');
    navDir='l';page='pengaturan';settingsOpen=false;dbUnlocked=false;renderSwap();
@@ -496,7 +500,7 @@
    case 'employee':if(id&&data.staff.find(x=>x.id===id)?.owner){askUnlock(()=>edit('employee',id),'owner');break}edit(a,id);break;
    case 'product':case 'supplier':edit(a,id);break;
    case 'contact':{let s=data.suppliers.find(s=>s.id===id);modal(s.name,contact(s,data.products)+(allowed('suplier')?'<div class="actions">'+btn('supplier','Edit suplier','edit','',s.id)+'</div>':''));break}
-   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'setback':closeSub();break;case 'setopen':case 'tab':{const go=()=>{settingsTab=id;if(a==='setopen'){settingsOpen=true;history.pushState({d:histDepth()+1},'','#pengaturan/'+id)}draftLogo=data.settings.logo||'';mg.search='';mg.pg={};renderSwap()};if(id==='koneksi'&&!dbUnlocked){askUnlock(go);break}if(id!=='koneksi')dbUnlocked=false;go();break}case 'opensettings':close();nav('pengaturan');break;
+   case 'export':modal('Ekspor laporan',exportChooser());break;case 'export-csv':if(await askConfirm('Ekspor laporan CSV?','File CSV akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportCsv(data);close()}break;case 'export-pdf':if(await askConfirm('Ekspor laporan PDF?','File PDF akan diunduh sesuai periode yang dipilih.','Ekspor','download')){exportPdf(data);close()}break;case 'setback':closeSub();break;case 'setopen':case 'tab':{const go=()=>{settingsTab=id;if(a==='setopen'){settingsOpen=true;navSlide=true;history.pushState({d:histDepth()+1},'','#pengaturan/'+id)}draftLogo=data.settings.logo||'';mg.search='';mg.pg={};renderSwap()};if(id==='koneksi'&&!dbUnlocked){askUnlock(go);break}if(id!=='koneksi')dbUnlocked=false;go();break}case 'opensettings':close();nav('pengaturan');break;
    case 'connection':if(owner()&&!dbUnlocked)askUnlock(()=>modal('Pengaturan database',connectionView()));else if(owner()||!db.config())modal('Pengaturan database',connectionView());break;
    case 'test':{let f=button.closest('form');if(!f.reportValidity())return;busy=true;button.disabled=true;let v=asForm(f);await db.testConfig(db.parseConfig(v.url,v.key));f.querySelector('.error').textContent='';feedback('Koneksi, skema database, dan fungsi login siap.');break}
    case 'copycfg':{const t=$('#cfgcode');if(t){try{await navigator.clipboard.writeText(t.value)}catch{t.select();document.execCommand('copy')}feedback('Kode disalin.')}break}
@@ -560,13 +564,14 @@
    const raw=location.hash.slice(1),[m,sb]=(raw||'kasir').split('/');
    if(raw==='keranjang'||!allowed(m)){syncCartPage();return}
    if(mobileUI()){
+    const wasSub=isSubPage();
     let open=false;
     if(m==='pengaturan'&&sb){
      const ok=sb==='bisnis'||(data.me.owner&&sb==='akun')||(data.me.owner&&sb==='koneksi'&&dbUnlocked);
      if(ok){open=true;settingsTab=sb}else history.replaceState(null,'',location.pathname+location.search+'#pengaturan');
     }
     if(m===page&&open===settingsOpen){syncCartPage();return}
-    navDir='l';page=m;settingsOpen=open;
+    navDir='l';navSlide=wasSub||open||(SUBMENUS.includes(m)&&!isTab(m));page=m;settingsOpen=open;
     if(!(open&&settingsTab==='koneksi'))dbUnlocked=false;
     subPushed=open||(SUBMENUS.includes(m)&&!isTab(m));
     renderSwap();return;
