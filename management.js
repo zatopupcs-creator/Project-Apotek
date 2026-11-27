@@ -53,11 +53,7 @@ const ApotekManagement = (() => {
    const size='<div class="selectbox pgsel"><input type="hidden" name="pgsize" value="'+mg.size+'" data-options="'+h(JSON.stringify(opts))+'"><button type="button" class="control selbtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Baris per halaman"><span>'+mg.size+'</span>'+icon('down',16)+'</button></div>';
    return '<div class="pager"><span class="pgtext">Menampilkan '+(from+1)+'–'+(from+count)+' dari '+total+' '+noun+'</span><div class="pgctrl"><span class="pglabel">Baris per halaman</span>'+size+'<div class="pgnav'+(pages<=1?' single':'')+'">'+arrow(cur-1,cur<=1,'Halaman sebelumnya',90)+nums+arrow(cur+1,cur>=pages,'Halaman berikutnya',-90)+'</div></div></div>';
   }
-  function paginate(key,noun,items){
-   const size=mg.size,pages=Math.max(1,Math.ceil(items.length/size)),cur=Math.min(Math.max(1,mg.pg[key]||1),pages),from=(cur-1)*size,slice=items.slice(from,from+size);
-   mg.pg[key]=cur;
-   return {items:slice,html:pager(key,cur,pages,items.length,from,slice.length,noun)};
-  }
+  function paginate(key,noun,items){return {items,html:''}}
   function paged(key,noun,headers,rows){
    const p=paginate(key,noun,rows);
    return table(headers,p.items)+p.html;
@@ -70,7 +66,7 @@ const ApotekManagement = (() => {
   }
   function historyFilter(d){
    const first=d.sales.reduce((n,x)=>Math.min(n,new Date(x.at).getTime()),Infinity),since=Number.isFinite(first)?ApotekDates.wall(first).slice(0,10):'';
-   return '<div class="rwfilter"><div class="fieldbox"><span>Rentang waktu</span><button type="button" class="control selbtn rangebtn" data-dp="range" data-scope="riwayat" data-reset="semua" data-since="'+h(since)+'" aria-haspopup="dialog">'+icon('calendar',17)+'<span><span class="dlong">'+h(rangeText(mg.rw))+'</span><span class="dshort">'+h(rangeShort(mg.rw))+'</span></span>'+icon('down',16)+'</button></div></div>';
+   return '<div class="panel reportfilters rwfilter"><div class="fieldbox"><span>Rentang waktu</span><button type="button" class="control selbtn rangebtn" data-dp="range" data-scope="riwayat" data-reset="semua" data-since="'+h(since)+'" aria-haspopup="dialog">'+icon('calendar',17)+'<span><span class="dlong">'+h(rangeText(mg.rw))+'</span><span class="dshort">'+h(rangeShort(mg.rw))+'</span></span>'+icon('down',16)+'</button></div></div>';
   }
   function management(page,d){
    if(page==='laporan')return reports(d);
