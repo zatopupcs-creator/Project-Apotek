@@ -67,7 +67,9 @@ const ApotekManagement = (() => {
    if(page==='laporan')return reports(d);
    let title=menus[page];
    const add={stok:['product','Tambah produk'],suplier:['supplier','Tambah suplier'],pegawai:['employee','Tambah pegawai']}[page];
-   return head(title,add?btn(add[0],add[1],'plus','dark'):'')+'<div class="panel"><div class="panelhead">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
+   const fab=add?btn(add[0],add[1],'plus','dark fab','','aria-label="'+h(add[1])+'"'):'';
+   const toggle='<button type="button" class="searchtoggle'+(mg.searchOpen?' on':'')+'" data-a="searchtoggle" aria-label="Cari" aria-expanded="'+Boolean(mg.searchOpen)+'">'+icon('search',20)+'</button>';
+   return head(title,fab+toggle)+'<div class="panel"><div class="panelhead msearch'+(mg.searchOpen||mg.search?' open':'')+'">'+search('mgsearch',mg.search,'Cari '+({stok:'nama produk atau SKU',suplier:'nama suplier',pegawai:'nama, username, atau ID',riwayat:'nomor struk atau kasir'}[page])+'…')+'</div><div id="mgrows">'+managementRows(page,d)+'</div></div>';
   }
   function managementRows(page,d){
    let headers,rows,noun;
