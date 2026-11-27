@@ -55,19 +55,22 @@ const ApotekSettings = (() => {
    const sample={business:b,number:1,cashier:'Kasir contoh',at:Date.now(),items:[{name:'Produk contoh',price:10000,qty:1}],subtotal:10000,discount:0,total:10000,method:'Tunai',paid:10000,change:0};
    return ticket(sample);
   }
-  function moreMenu(d){
+  function listView(d,tabs){
+   const sub={bisnis:'Nama apotek, logo, dan isi struk',akun:'Kelola akun login pegawai',koneksi:'Koneksi database'};
+   const row=(a,id,l,ic,s,cls)=>'<button type="button" class="morelink'+(cls?' '+cls:'')+'" data-a="'+a+'"'+(id?' data-id="'+id+'"':'')+'><span class="mico">'+icon(ic,20)+'</span><span class="mtxt"><b>'+l+'</b>'+(s?'<small>'+s+'</small>':'')+'</span>'+(a==='logout'?'':icon('right',16))+'</button>';
    const items=[['suplier','Suplier'],['riwayat','Riwayat'],['pegawai','Pegawai']].filter(([m])=>d.me.owner||(d.me.menus||[]).includes(m));
-   const link=(a,id,l,ic)=>'<button type="button" class="morelink" data-a="'+a+'"'+(id?' data-id="'+id+'"':'')+'>'+icon(ic,20)+'<span>'+l+'</span>'+(a==='nav'?icon('right',16):'')+'</button>';
-   return '<section class="moremenu" aria-label="Menu lainnya"><h2>Menu lainnya</h2><div class="morelist">'+items.map(([m,l])=>link('nav',m,l,m)).join('')+link('account','','Akun saya','user')+link('logout','','Keluar','logout')+'</div></section>';
+   return '<section class="moremenu"><h2>Pengaturan</h2><div class="morelist">'+tabs.map(([id,l,ic])=>row('setopen',id,l,ic,sub[id])).join('')+'</div></section>'+
+    (items.length?'<section class="moremenu"><h2>Menu lainnya</h2><div class="morelist">'+items.map(([m,l])=>row('nav',m,l,m)).join('')+'</div></section>':'')+
+    '<section class="moremenu"><h2>Akun</h2><div class="morelist">'+row('account','','Akun saya','user','Lihat akun yang sedang masuk')+row('logout','','Keluar','logout','','danger')+'</div></section>';
   }
-  function settingsView(d,tab,draftLogo){
+  function settingsView(d,tab,draftLogo,mode){
    const tabs=[['bisnis','Bisnis & struk','receipt'],...(d.me.owner?[['akun','Akun login','pegawai'],['koneksi','Database','database']]:[])];
-   const nav='<div class="settingsnav">'+tabs.map(([id,l,ic])=>btn('tab',l,ic,tab===id?'dark':'',id)).join('')+'</div>'+moreMenu(d);
-   const heading=head('Pengaturan');
-   if(tab==='koneksi'&&d.me.owner)return heading+nav+'<div class="panel settingsbox">'+connectionView()+'</div>';
-   if(tab==='akun'&&d.me.owner)return heading+nav+'<section class="panel"><div class="panelhead"><h2>Akun login</h2>'+btn('employee','Tambah akun','plus','dark')+'</div><div class="panelhead">'+search('mgsearch',mg.search,'Cari nama, username, atau ID…')+'</div><div id="mgrows">'+managementRows('pegawai',d)+'</div></section>';
+   const nav='<div class="settingsnav">'+tabs.map(([id,l,ic])=>btn('tab',l,ic,tab===id?'dark':'',id)).join('')+'</div>';
+   const body=()=>{
+   if(tab==='koneksi'&&d.me.owner)return '<div class="panel settingsbox">'+connectionView()+'</div>';
+   if(tab==='akun'&&d.me.owner)return '<section class="panel"><div class="panelhead"><h2>Akun login</h2>'+btn('employee','Tambah akun','plus','dark')+'</div><div class="panelhead">'+search('mgsearch',mg.search,'Cari nama, username, atau ID…')+'</div><div id="mgrows">'+managementRows('pegawai',d)+'</div></section>';
    const b=d.settings;
-   return heading+nav+'<div class="receipt-layout"><form id="businessform" class="panel"><div class="panelhead"><h2>Identitas dan isi struk</h2></div>'+
+   return '<div class="receipt-layout"><form id="businessform" class="panel"><div class="panelhead"><h2>Identitas dan isi struk</h2></div>'+
     '<div class="logo-editor"><div class="logo-tile" id="logo-tile">'+logoTile(draftLogo)+'</div><div><strong>Logo apotek</strong><small>Tampil di website dan dapat dicetak pada struk.</small><div class="tools">'+
     '<label class="uploadlogo">Pilih gambar<input type="file" name="logoFile" accept="image/png,image/jpeg,image/webp"></label> '+
     '<button type="button" class="quietlink" data-a="clearlogo" '+(!logoUrl(draftLogo)?'hidden':'')+'>Hapus logo</button></div></div></div>'+
@@ -80,6 +83,10 @@ const ApotekSettings = (() => {
     '<div class="checks wide">'+check('showLogo','Tampilkan logo pada struk',b.showLogo!==false)+check('showCashier','Tampilkan nama kasir',b.showCashier!==false)+'</div></div>'+
     '<p class="error" role="alert"></p><div class="actions"><button class="btn primary">Simpan pengaturan</button></div></form>'+
     '<aside class="panel receipt-sample"><div class="panelhead"><h2>Pratinjau struk</h2>'+icon('receipt')+'</div><div id="receipt-preview">'+receiptPreview({...b,logo:draftLogo})+'</div></aside></div>';
+   };
+   if(mode==='list')return head('Pengaturan')+listView(d,tabs);
+   if(mode==='detail'){const t=tabs.find(x=>x[0]===tab)||tabs[0];return '<div class="subhead"><button type="button" class="subback" data-a="setback" aria-label="Kembali">'+icon('back',22)+'</button><h1>'+h(t[1])+'</h1></div>'+body()}
+   return head('Pengaturan')+nav+body();
   }
   function receiptValues(form,logo){
    const fd=new FormData(form);fd.delete('logoFile');
