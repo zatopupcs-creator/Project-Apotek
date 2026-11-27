@@ -46,3 +46,22 @@ main:has(.login-stage){padding:0}
 .searchgo{align-self:stretch;width:52px;height:auto;border:0;border-left:1px solid #dce0e5;border-radius:0;background:#fff;color:#3b4454}
 .searchgo:hover{background:#f3f5fa}
 .searchgo:active{transform:none;background:#e9ecf2}
+
+/* Navigasi bawah (mobile) */
+.bottomnav{display:none}
+@media(max-width:999px){
+ body.has-side:not(.cartpage) .bottomnav{display:flex}
+ .bottomnav{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(calc(100% - 24px),420px);height:64px;z-index:38;align-items:center;justify-content:space-around;padding:0 6px;background:#fff;border-radius:20px;box-shadow:0 8px 26px #1b263d29,0 0 0 1px #e6e9f0}
+ .bn-item{flex:1;height:100%;display:grid;place-items:center;padding:0;border:0;background:none;color:#7b8494;cursor:pointer;-webkit-tap-highlight-color:transparent}
+ .bn-ic{width:46px;height:46px;display:grid;place-items:center;border-radius:16px;transition:transform .22s ease,background-color .2s,color .2s,box-shadow .2s,width .2s,height .2s}
+ .bn-item:active .bn-ic{transform:scale(.92)}
+ .bn-item.current{color:#fff}
+ .bn-item.current .bn-ic{width:56px;height:56px;border-radius:18px;background:#202630;color:#fff;transform:translateY(-20px);box-shadow:0 8px 16px #20263040}
+ .bn-item.current:active .bn-ic{transform:translateY(-20px) scale(.95)}
+ .bn-item:focus-visible{outline:2px solid #202630;outline-offset:-4px;border-radius:16px}
+ body.has-side:not(.cartpage) main{padding-bottom:100px}
+ body.has-side:not(.cartpage) .sitefoot{padding-bottom:92px}
+ body.has-side:not(.cartpage) .floatcart{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+}
+@media(prefers-reduced-motion:reduce){.bn-ic{transition:none}}
+@media print{.bottomnav{display:none!important}}
