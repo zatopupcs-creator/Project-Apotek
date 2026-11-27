@@ -561,7 +561,7 @@
    if(t.name==='pgsize'){mg.size=Number(t.value);mg.pg={};repage()}
    if(t.name==='period'){mg.period=t.value;render()}
    if(t.name==='method'){let paid=t.form.elements.paid;paid.value=totals().total;paid.readOnly=t.value!=='Tunai';$('#change').innerHTML=line('Kembalian',rp(0))}});
-  document.addEventListener('dp-range',e=>{Object.assign(mg,e.detail);mg.pg={};if(data&&page==='laporan')render()});
+  document.addEventListener('dp-range',e=>{if(page==='riwayat'){Object.assign(mg.rw,e.detail);mg.pg={};if(data)render();return}Object.assign(mg,e.detail);mg.pg={};if(data&&page==='laporan')render()});
   setInterval(checkExpiry,3600000);
   window.addEventListener('hashchange',()=>{
    const raw=location.hash.slice(1),[m,sb]=(raw||'kasir').split('/');
