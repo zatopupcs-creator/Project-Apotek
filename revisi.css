@@ -186,3 +186,16 @@ html body main>.panel.rwfilter{flex:none;display:block;margin:0 0 16px}
 /* Versi aplikasi: hanya di halaman Pengaturan (HP & desktop), di atas copyright */
 .sitever{display:none}
 html body main:has(.moremenu,.settingsnav)~.sitefoot .sitever{display:block;margin-bottom:10px;font-weight:600;color:#6b7280}
+
+/* Bar atas ringkas saat scroll (HP) */
+.topbar{display:none}
+@media(max-width:999px){
+ .topbar{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top,0px)) 16px 8px;min-height:calc(54px + env(safe-area-inset-top,0px));background:#ffffffe8;-webkit-backdrop-filter:saturate(1.6) blur(14px);backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid #e6e9f0;box-shadow:0 4px 18px #1b263d12;transform:translateY(-110%);opacity:0;visibility:hidden;pointer-events:none;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease,visibility 0s linear .28s}
+ .topbar.show{transform:none;opacity:1;visibility:visible;pointer-events:auto;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease,visibility 0s}
+ .tbtitle{margin:0;font-size:1.2rem;font-weight:800;letter-spacing:-.03em;color:#202632;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .tbact{margin-left:auto;display:flex;align-items:center;gap:8px}
+ .tbbtn{position:relative;flex:none;display:grid;place-items:center;width:38px;height:38px;padding:0;border-radius:50%;border:1px solid #e6e9f0;background:#fff;color:#202632;box-shadow:none}
+ .tbbtn[hidden]{display:none}
+ .tbbtn:active{transform:scale(.94)}
+}
+@media(prefers-reduced-motion:reduce){.topbar,.topbar.show{transition:none}}
