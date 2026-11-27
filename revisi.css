@@ -176,3 +176,13 @@ main:has(.login-stage){padding:0}
 @media(max-width:999px){
  html body.has-side:not(.cartpage) main:has(.moremenu)+.sitefoot{padding-top:24px!important;padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))!important}
 }
+
+/* Riwayat: filter rentang tanggal */
+.rwfilter{margin:0 0 16px}
+.rwfilter .fieldbox{max-width:360px}
+@media(max-width:720px){.rwfilter .fieldbox,.rwfilter .selbtn{width:100%;max-width:none}}
+
+/* Menu Pengaturan (HP): copyright dihilangkan */
+@media(max-width:999px){
+ html body.has-side main:has(.moremenu)+.sitefoot{display:none!important}
+}
