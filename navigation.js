@@ -55,7 +55,12 @@ const ApotekNavigation = (() => {
    const name=brand.name||'Bee Farma';
    document.querySelector('link[rel="icon"]').href=logo;
    document.getElementById('header').innerHTML=user?'':'<div class="headinner revised-head"><span class="brand"><img alt="" src="'+logo+'"><span>'+h(name)+'</span></span></div>';
-   if(!user){isOpen=false;pane.innerHTML='';sync();return}
+   const bnav=document.getElementById('bottomnav');
+   if(!user){isOpen=false;pane.innerHTML='';if(bnav)bnav.innerHTML='';sync();return}
+   if(bnav){
+    const quick=['kasir','stok','riwayat','laporan','suplier','pegawai','pengaturan'].filter(m=>Object.hasOwn(menus,m)&&can(m)).slice(0,4);
+    bnav.innerHTML=quick.map(m=>'<button type="button" class="bn-item'+(page===m?' current':'')+'" data-a="nav" data-id="'+m+'" title="'+h(menus[m])+'" aria-label="'+h(menus[m])+'" '+(page===m?'aria-current="page"':'')+'><span class="bn-ic">'+icon(m,22)+'</span></button>').join('');
+   }
    const sections=[['Utama',['kasir']],['Operasional',['suplier','stok']],['Laporan',['laporan','riwayat']],['Pengelolaan',['pegawai','pengaturan']]];
    const item=m=>'<button type="button" class="snav-item '+(page===m?'current':'')+'" data-a="nav" data-id="'+m+'" '+(page===m?'aria-current="page"':'')+'>'+icon(m,20)+'<span>'+h(menus[m])+'</span>'+(m==='kasir'?'':'<i class="snav-chev">'+icon('right',16)+'</i>')+'</button>';
    const groups=sections.map(([title,keys])=>{
