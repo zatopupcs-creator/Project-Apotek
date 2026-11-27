@@ -62,7 +62,8 @@ const ApotekNavigation = (() => {
     const base=['kasir','stok','laporan'].filter(ok),extra=['riwayat','suplier','pegawai'].filter(ok);
     const three=[...base,...extra].slice(0,3).map(m=>({id:m,label:menus[m],action:'nav',ico:m}));
     const last=ok('pengaturan')?{id:'pengaturan',label:menus.pengaturan,action:'nav',ico:'pengaturan'}:{id:'akun',label:'Akun',action:'account',ico:'user'};
-    const items=[...three,last],sig=items.map(i=>i.action+':'+i.id).join('|');
+    const items=[...three,last];bnav.dataset.ids=items.filter(i=>i.action==='nav').map(i=>i.id).join(',');
+    const sig=items.map(i=>i.action+':'+i.id).join('|');
     const curOf=it=>it.action==='nav'&&(page===it.id||(it.id==='pengaturan'&&!three.some(t=>t.id===page)));
     if(bnav.dataset.sig===sig){
      bnav.querySelectorAll('.bn-item').forEach((el,i)=>{const c=curOf(items[i]);el.classList.toggle('current',c);if(c)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current')});
