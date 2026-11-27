@@ -58,9 +58,13 @@ const ApotekNavigation = (() => {
    const bnav=document.getElementById('bottomnav');
    if(!user){isOpen=false;pane.innerHTML='';if(bnav)bnav.innerHTML='';sync();return}
    if(bnav){
-    const quick=['kasir','stok','riwayat','laporan','suplier','pegawai','pengaturan'].filter(m=>Object.hasOwn(menus,m)&&can(m)).slice(0,4);
-    bnav.innerHTML=quick.map(m=>'<button type="button" class="bn-item'+(page===m?' current':'')+'" data-a="nav" data-id="'+m+'" title="'+h(menus[m])+'" aria-label="'+h(menus[m])+'" '+(page===m?'aria-current="page"':'')+'><span class="bn-ic">'+icon(m,22)+'</span></button>').join('');
+    const ok=m=>Object.hasOwn(menus,m)&&can(m);
+    const base=['kasir','stok','laporan'].filter(ok),extra=['riwayat','suplier','pegawai'].filter(ok);
+    const three=[...base,...extra].slice(0,3).map(m=>({id:m,label:menus[m],action:'nav',ico:m}));
+    const last=ok('pengaturan')?{id:'pengaturan',label:menus.pengaturan,action:'nav',ico:'pengaturan'}:{id:'akun',label:'Akun',action:'account',ico:'user'};
+    bnav.innerHTML=[...three,last].map(it=>{const cur=it.action==='nav'&&page===it.id;return '<button type="button" class="bn-item'+(cur?' current':'')+'" data-a="'+it.action+'" data-id="'+it.id+'" title="'+h(it.label)+'" aria-label="'+h(it.label)+'" '+(cur?'aria-current="page"':'')+'>'+icon(it.ico,22)+'<span class="bn-label">'+h(it.label)+'</span></button>'}).join('');
    }
+
    const sections=[['Utama',['kasir']],['Operasional',['suplier','stok']],['Laporan',['laporan','riwayat']],['Pengelolaan',['pegawai','pengaturan']]];
    const item=m=>'<button type="button" class="snav-item '+(page===m?'current':'')+'" data-a="nav" data-id="'+m+'" '+(page===m?'aria-current="page"':'')+'>'+icon(m,20)+'<span>'+h(menus[m])+'</span>'+(m==='kasir'?'':'<i class="snav-chev">'+icon('right',16)+'</i>')+'</button>';
    const groups=sections.map(([title,keys])=>{
