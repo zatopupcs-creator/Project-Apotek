@@ -109,3 +109,8 @@ main:has(.login-stage){padding:0}
 @keyframes pgr{from{transform:translateX(100%)}to{transform:none}}
 @keyframes pgl{from{transform:translateX(-100%)}to{transform:none}}
 @media(prefers-reduced-motion:reduce){main.pgr,main.pgl,.sitefoot.pgr,.sitefoot.pgl{animation:none}}
+
+/* Kartu produk putih */
+.products .card{background:#fff}
+.photo{background:#fff}
+.photo img{filter:brightness(1.08) contrast(1.02)}
