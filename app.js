@@ -107,8 +107,9 @@
    }
    try{
     const first=!data;
-    if(first)$('#main').innerHTML=skeleton();
-    const [fresh]=await Promise.all([db.state(),new Promise(r=>setTimeout(r,first?skeletonMs:0))]);if(id!==refreshId)return;
+    const skel=first&&page!=='pengaturan';
+    if(skel)$('#main').innerHTML=skeleton();
+    const [fresh]=await Promise.all([db.state(),new Promise(r=>setTimeout(r,skel?skeletonMs:0))]);if(id!==refreshId)return;
     data=fresh;brand={name:data.settings.name,logo:data.settings.logo||''};saveBrand();saveNav();authError='';loadDraft();
     draftLogo=brand.logo;
     if(!owner()&&settingsTab!=='bisnis')settingsTab='bisnis';
@@ -130,6 +131,7 @@
    navSlide=false;
    render();
    const main=$('#main');if(!data||!main)return;
+   if(page==='pengaturan'){scrollTo(0,0);return}
    [main,$('#sitefoot')].forEach(e=>e&&e.classList.remove('pgr','pgl'));
    const real=main.innerHTML;
    main.innerHTML=skeleton();main.setAttribute('aria-busy','true');scrollTo(0,0);
@@ -479,6 +481,7 @@
    case 'category':category=id;render();catalogSwap();break;case 'add':case 'minus':{if(a==='minus'&&cart[id]===1&&!pending&&product(id)){askRemove(id);break}const before=totals().qty,had=(cart[id]||0)>0;changeQty(id,a);if(a==='add'&&button.closest('.card')&&totals().qty>before)cartFx(button,id,!had);break}
    case 'cancelsale':{if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.','error');break}if(!totals().qty||clearing)break;if(await askConfirm('Batalkan transaksi?','Semua produk di keranjang akan dihapus dan diskon direset.','Batalkan','trash'))clearCart();break}
    case 'searchgo':runSearch(id);break;
+   case 'searchtoggle':{const row=document.querySelector('.msearch');if(!row)break;const on=!row.classList.contains('open');row.classList.toggle('open',on);button.classList.toggle('on',on);button.setAttribute('aria-expanded',String(on));mg.searchOpen=on;if(on){const i=row.querySelector('input');if(i)i.focus()}break}
    case 'remove':{if(pending||!product(id)){changeQty(id,a);break}askRemove(id);break}
    case 'confirmpay':busy=true;await finishPayment(pendingPay);break;
    case 'confirmremove':{close();if(!pending){busy=true;await trashFx([...document.querySelectorAll('#cart .cartitem')].find(r=>r.dataset.pid===id))}changeQty(id,'remove');if(!cart[id])feedback('Produk dihapus dari keranjang.');break}
