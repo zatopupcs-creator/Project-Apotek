@@ -230,7 +230,7 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
  body.cartpage .cartpanel .emptycart{flex:1 1 auto;min-height:0}
  body.cartpage .cartpanel .carttext{min-width:0;flex:1}
  body.cartpage .cartpanel .carttext b{overflow-wrap:anywhere}
- body.cartpage .cartpanel .qty button{width:36px;height:36px;border-radius:9px;font-size:1.05rem}
+ body.cartpage .cartpanel .qty button,body.cartpage .cartpanel .qty .qtyinput{width:36px;height:36px;border-radius:9px;font-size:1.05rem}
  body.cartpage .cartpanel .cartitem>.iconbtn{width:44px;height:44px;flex:none}
  body.cartpage .cartback-btn{display:inline-flex;margin-top:18px;min-height:46px}
  body.cartpage .cartpanel .summary{flex:none;padding:14px calc(16px + env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));background:#fff;box-shadow:0 -8px 20px #1b263d12}
@@ -347,13 +347,13 @@ main:has(.login-stage){padding-top:0;padding-bottom:0}
  body.cartpage .cartpanel .carttext b{grid-area:name;align-self:end;font-size:.92rem;line-height:1.25}
  body.cartpage .cartpanel .carttext small{grid-area:price;align-self:start;margin:0;font-size:.8rem}
  body.cartpage .cartpanel .cartitem .qty{grid-area:qty;gap:6px}
- body.cartpage .cartpanel .cartitem .qty button{width:32px;height:32px}
+ body.cartpage .cartpanel .cartitem .qty button,body.cartpage .cartpanel .cartitem .qty .qtyinput{width:32px;height:32px}
  body.cartpage .cartpanel .cartitem>.iconbtn{grid-area:bin;width:40px;height:40px}
 }
 @media(max-width:360px){
  body.cartpage .cartpanel .cartitem{column-gap:6px}
  body.cartpage .cartpanel .cartitem .qty{gap:4px}
- body.cartpage .cartpanel .cartitem .qty button{width:30px;height:30px}
+ body.cartpage .cartpanel .cartitem .qty button,body.cartpage .cartpanel .cartitem .qty .qtyinput{width:30px;height:30px}
  body.cartpage .cartpanel .cartitem>.iconbtn{width:34px;height:34px}
 }
 .skm:not(input):not(textarea):not(select):not(button):not(img):not(svg):not(canvas):not(.photo):not(.thumb):not(.avatar):not(td):not(th){width:fit-content;max-width:100%;clip-path:inset(16% 0 16% 0 round 7px)}
