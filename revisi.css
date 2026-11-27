@@ -94,6 +94,18 @@ main:has(.login-stage){padding:0}
 }
 @media(prefers-reduced-motion:reduce){.bn-item{transition:none}}
 @media print{.bottomnav{display:none!important}}
+@media(max-width:999px){
+ body.has-side .pagehead h1{font-size:2.1rem}
+ .profilecard{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 18px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:left;cursor:pointer;color:#1f2937}
+ .profilecard:active{background:#f3f5fa}
+ .profilecard .pavatar{flex:none;display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:#0b6bff;color:#fff;font-size:1.05rem;font-weight:700}
+ .profilecard .mtxt{flex:1;min-width:0;display:grid;gap:2px}
+ .profilecard .mtxt b{font-size:1.05rem;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .profilecard .mtxt small{color:#7b8494;font-size:.82rem}
+ .profilecard>svg{flex:none;color:#9aa3b2}
+ .subhead .subact{margin-left:auto}
+ .subhead .subact .btn{min-height:38px;padding:0 14px;font-size:.88rem}
+}
 @keyframes pgr{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
 @keyframes pgl{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){main.pgr,main.pgl{animation:none}}
