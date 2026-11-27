@@ -178,9 +178,7 @@ main:has(.login-stage){padding:0}
 }
 
 /* Riwayat: filter rentang tanggal */
-.rwfilter{margin:0 0 16px}
-.rwfilter .fieldbox{max-width:360px}
-@media(max-width:720px){.rwfilter .fieldbox,.rwfilter .selbtn{width:100%;max-width:none}}
+html body main>.panel.rwfilter{flex:none;display:block;margin:0 0 16px}
 
 /* Menu Pengaturan (HP): copyright dihilangkan */
 @media(max-width:999px){
