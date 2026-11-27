@@ -250,7 +250,7 @@
    return '<div class="sectionline"><h2>Katalog produk</h2><span>'+products.length+' produk</span></div><div class="products">'+(products.map(p=>'<article class="card"><button class="photo" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambah '+h(p.name)+'" '+(!p.stock?'disabled':'')+'>'+photo(p)+'</button><div class="cardbody"><span class="tag">'+h(p.category)+'</span><h3>'+h(p.name)+'</h3><span class="productdesc">'+h(p.detail||p.sku)+'</span><div class="cardbottom"><div><span class="price">'+rp(p.price)+'</span> <span class="unit">/ '+h(p.unit.toLowerCase())+'</span></div><div class="addcol"><span class="stocktag '+(p.stock===0?'zero':p.stock<=p.minimum?'low':'')+'" data-sid="'+h(p.id)+'">Stok <span class="stocknum">'+p.stock+'</span></span><button class="square" type="button" data-a="add" data-id="'+h(p.id)+'" aria-label="Tambahkan '+h(p.name)+' ke keranjang" '+(!p.stock?'disabled':'')+'>'+icon('plus',17)+'</button></div></div></div></article>').join('')||empty('Produk tidak ditemukan',data.products.length?'Coba kata kunci atau kategori lain.':'Tambahkan produk melalui menu Stok.'))+'</div>';
   }
   function cartView(){const {qty,sub,total,lines}=totals();
-   return '<div class="boxhead"><div class="boxname"><button type="button" class="cartback" data-a="cartback" aria-label="Kembali ke katalog">'+backArrow+'</button><span class="boxicon logo"><img alt="" src="'+h(logoUrl(brand.logo)||'icon.svg')+'"></span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem" data-pid="'+h(p.id)+'"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<span>'+qty+'</span>'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p><button type="button" class="btn cartback-btn" data-a="cartback">Kembali ke katalog</button></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button>'+(qty?btn('cancelsale','Batalkan transaksi','trash','full cancelsale'):'')+'</div>';
+   return '<div class="boxhead"><div class="boxname"><button type="button" class="cartback" data-a="cartback" aria-label="Kembali ke katalog">'+backArrow+'</button><span class="boxicon logo"><img alt="" src="'+h(logoUrl(brand.logo)||'icon.svg')+'"></span><h2>Keranjang</h2></div><span class="count">'+qty+' item</span></div>'+(qty?'<div class="cartitems">'+lines.map(({p,qty})=>'<div class="cartitem" data-pid="'+h(p.id)+'"><span class="thumb">'+photo(p)+'</span><div class="carttext"><b>'+h(p.name)+'</b><small>'+rp(p.price)+' / '+h(p.unit.toLowerCase())+'</small><div class="qty">'+ib('minus','Kurangi '+p.name,'minus',p.id,'')+'<input class="qtyinput qtyval" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" maxlength="4" aria-label="Jumlah '+h(p.name)+'" data-pid="'+h(p.id)+'" value="'+qty+'">'+ib('add','Tambah '+p.name,'plus',p.id,'')+'</div></div>'+ib('remove','Hapus '+p.name,'trash',p.id)+'</div>').join('')+'</div>':'<div class="emptycart"><div class="receipt-art" aria-hidden="true"><span class="paper"><i></i><i></i><i></i></span><b>+</b></div><strong>Keranjang masih kosong</strong><p>Pilih produk dari katalog untuk menambahkannya ke sini.</p><button type="button" class="btn cartback-btn" data-a="cartback">Kembali ke katalog</button></div>')+'<div class="summary">'+line('Subtotal',rp(sub))+'<div class="line"><span>Diskon</span><button class="linkbtn" data-a="discount" '+(!qty?'disabled':'')+' aria-label="Atur diskon">'+(discount?'− '+rp(discount):rp(0))+(qty?' '+icon('edit',12):'')+'</button></div><div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><button class="btn primary full" data-a="pay" '+(!qty?'disabled':'')+'>'+icon('wallet',18)+' Bayar'+(qty?' '+rp(total):'')+'</button>'+(qty?btn('cancelsale','Batalkan transaksi','trash','full cancelsale'):'')+'</div>';
   }
   const mobileCart=()=>totals().qty?btn('jumpcart','Keranjang · '+rp(totals().total),'bag','primary floatcart'):'';
   function updateCart(){saveDraft();$('#cart').innerHTML=cartView();$('#mobilecart').innerHTML=mobileCart()}
@@ -269,7 +269,7 @@
     if(!row||reduce)return;
     if(isNew)row.animate([{opacity:0,transform:'translateY(-14px) scale(.9)',clipPath:'inset(0 0 100% 0)',backgroundColor:'#fff2e9'},{opacity:1,transform:'translateY(0) scale(1.03)',clipPath:'inset(0 0 0 0)',backgroundColor:'#fff2e9',offset:.6},{opacity:1,transform:'scale(1)',clipPath:'inset(0 0 0 0)',backgroundColor:'rgba(255,242,233,0)'}],{duration:520,easing:'cubic-bezier(.2,.8,.2,1)'});
     else row.animate([{backgroundColor:'#fff2e9'},{backgroundColor:'rgba(255,242,233,0)'}],{duration:600,easing:'ease-out'});
-    const q=row.querySelector('.qty span');q?.animate([{transform:'scale(1)'},{transform:'scale(1.5)'},{transform:'scale(1)'}],{duration:340,easing:'ease-out'});
+    const q=row.querySelector('.qty .qtyval');q?.animate([{transform:'scale(1)'},{transform:'scale(1.5)'},{transform:'scale(1)'}],{duration:340,easing:'ease-out'});
    };
    if(!target||reduce){reveal();return}
    if(isNew&&row&&rowTarget)row.style.opacity='0';
@@ -305,6 +305,18 @@
    });
   }
   function changeQty(id,mode){const p=product(id);if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.','error');return}let n=mode==='remove'?0:(cart[id]||0)+(mode==='add'?1:-1);if(n>p.stock){feedback('Jumlah melebihi stok yang tersedia.','error');return}if(n<=0)delete cart[id];else cart[id]=n;discount=Math.min(discount,totals().sub);updateCart()}
+  function setQty(id,raw){
+   const p=product(id);if(!p)return;
+   if(pending){feedback('Selesaikan pemeriksaan pembayaran sebelumnya.','error');updateCart();return}
+   const txt=String(raw).trim(),cur=cart[id]||0;
+   let n=parseInt(txt,10);
+   const box=[...document.querySelectorAll('#cart .qtyinput')].find(i=>i.dataset.pid===id);
+   if(!txt||!Number.isFinite(n)){if(box)box.value=cur;return}
+   if(n<=0){if(box)box.value=cur;askRemove(id);return}
+   if(n>p.stock){feedback('Jumlah melebihi stok yang tersedia.','error');n=p.stock}
+   if(n===cur){if(box)box.value=cur;return}
+   cart[id]=n;discount=Math.min(discount,totals().sub);updateCart();
+  }
   function payment(){const {sub,total,qty}=totals();if(!qty)return;
    if(pending){const prev=JSON.parse(sessionStorage.getItem(cartKey+'.payment')||'null');if(prev){modal('Periksa pembayaran','<p class="note">Pembayaran sebelumnya belum terkonfirmasi. Tekan periksa untuk mengambil struk atau menyelesaikan transaksi dengan nomor yang sama.</p>'+btn('retry','Periksa transaksi','receipt','primary')+'<p class="error"></p>');return}}
    modal('Pembayaran','<form id="paymentform">'+line('Jumlah produk',qty+' item')+line('Subtotal',rp(sub))+line('Diskon',rp(discount))+'<div class="line total"><span>Total pembayaran</span><strong>'+rp(total)+'</strong></div><div class="formgrid">'+field('Metode pembayaran','method','Tunai',{items:['Tunai','QRIS','Debit','Transfer'],wide:true})+field('Uang diterima (Rp)','paid',total,{type:'number',required:true,min:total,wide:true,extra:'step="1"'})+'</div><div class="sectiongap" id="change">'+line('Kembalian',rp(0))+'</div>'+formEnd('Selesaikan pembayaran')+'</form>');
@@ -502,10 +514,10 @@
    await refresh();feedback('Perubahan disimpan.');
    }catch(ex){err(ex,form)}finally{busy=false;if(submit){submit.disabled=false;submit.classList.remove('loading')}}
   });
-  document.addEventListener('input',e=>{let t=e.target;if((t.id==='catalogsearch'||t.id==='mgsearch')&&t.value===''){runSearch(t.id)}
+  document.addEventListener('input',e=>{let t=e.target;if(t.classList?.contains('qtyinput'))t.value=t.value.replace(/\D/g,'');if((t.id==='catalogsearch'||t.id==='mgsearch')&&t.value===''){runSearch(t.id)}
    if(t.form?.id==='businessform'&&t.name!=='logoFile')$('#receipt-preview').innerHTML=receiptPreview(receiptValues(t.form,draftLogo));
    if(t.name==='paid'&&$('#change'))$('#change').innerHTML=line('Kembalian',rp(Math.max(0,t.value-totals().total)));});
-  document.addEventListener('change',async e=>{let t=e.target;
+  document.addEventListener('change',async e=>{let t=e.target;if(t.classList?.contains('qtyinput')){setQty(t.dataset.pid,t.value);return}
    if(t.name==='logoFile'&&t.files[0]){
     const form=t.form,file=t.files[0];const task=resizeLogo(file);logoTask=task;
     try{const next=await task;if(logoTask===task&&form.isConnected&&t.files[0]===file){
@@ -523,6 +535,8 @@
    if(e.key==='figiha.supabase'){db.logout();cartKey='';authError='';refresh();return}
    if(!db.config()&&e.key==='figiha.demo.v1'){if(!data||!dlg.open)refresh();else db.state().then(s=>{if(!s.me.owner&&(!s.me.menus.includes(page)||page==='pegawai')){close();refresh()}}).catch(()=>refresh())}
   });
+  document.addEventListener('focusin',e=>{if(e.target.classList?.contains('qtyinput'))e.target.select()});
+  document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList?.contains('qtyinput')){e.preventDefault();e.target.blur()}});
   document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='catalogsearch'||e.target.id==='mgsearch')){e.preventDefault();runSearch(e.target.id)}});
   document.addEventListener('keydown',e=>{if(dlg.open||document.body.classList.contains('side-modal')||page!=='kasir'||!data)return;if(e.key==='F2'){e.preventDefault();$('#catalogsearch').focus()}if(e.key==='F8'){e.preventDefault();payment()}});
   dlg.addEventListener('cancel',e=>{if(busy)e.preventDefault()});
