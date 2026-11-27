@@ -175,7 +175,7 @@ html body main>.panel.rwfilter{flex:none;display:block;margin:0 0 16px}
 
 /* Menu Pengaturan (HP): copyright dinaikkan (hanya halaman ini) */
 @media(max-width:999px){
- html body.has-side:not(.cartpage) main:has(.moremenu)~.sitefoot{padding-top:6px!important;padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))!important}
+ html body.has-side:not(.cartpage) main:has(.moremenu)~.sitefoot{padding-top:6px!important;padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
 }
 
 /* HP: halaman Bisnis & struk, Akun login, Database, Suplier, Riwayat, Pegawai tanpa copyright */
@@ -185,4 +185,4 @@ html body main>.panel.rwfilter{flex:none;display:block;margin:0 0 16px}
 
 /* Versi aplikasi: hanya di halaman Pengaturan (HP & desktop), di atas copyright */
 .sitever{display:none}
-html body main:has(.moremenu,.settingsnav)~.sitefoot .sitever{display:block;margin-bottom:4px;font-weight:600;color:#6b7280}
+html body main:has(.moremenu,.settingsnav)~.sitefoot .sitever{display:block;margin-bottom:10px;font-weight:600;color:#6b7280}
