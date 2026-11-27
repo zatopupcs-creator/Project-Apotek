@@ -123,7 +123,7 @@
    if(mobileUI()){
     render();
     const m=$('#main');if(!data||!m)return;
-    scrollTo(0,0);m.classList.remove('pgr','pgl');void m.offsetWidth;m.classList.add(navDir==='l'?'pgl':'pgr');navDir='r';
+    scrollTo(0,0);const f=$('#sitefoot'),cls=navDir==='l'?'pgl':'pgr';[m,f].forEach(e=>e&&e.classList.remove('pgr','pgl'));void m.offsetWidth;[m,f].forEach(e=>e&&e.classList.add(cls));navDir='r';
     return;
    }
    render();
@@ -211,7 +211,7 @@
    if(!allowed(m))return;
    if(mobileUI()&&m==='kasir'&&rootIsKasir&&histDepth()>0&&!isSubPage()){selectMenu();cartPushed=false;dbUnlocked=false;navDir='l';history.go(-histDepth());return}
    selectMenu();cartPushed=false;dbUnlocked=false;const prevPage=page,fromList=page==='pengaturan'&&!settingsOpen;settingsOpen=false;navDir=NAVORDER.indexOf(m)<NAVORDER.indexOf(page)?'l':'r';page=m;mg.search='';mg.pg={};draftLogo=data.settings.logo||'';
-   if(mobileUI()){const d=histDepth();if(m!==prevPage)history.pushState({d:d+1},'','#'+m);else history.replaceState({d},'','#'+m)}else if(location.hash!=='#'+m)location.hash=m;
+   if(mobileUI()){if(fromList&&!isTab(m))navDir='r';const d=histDepth();if(m!==prevPage)history.pushState({d:d+1},'','#'+m);else history.replaceState({d},'','#'+m)}else if(location.hash!=='#'+m)location.hash=m;
    renderSwap();
   }
   function render(){
