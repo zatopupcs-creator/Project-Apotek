@@ -199,3 +199,8 @@ html body main:has(.moremenu,.settingsnav)~.sitefoot .sitever{display:block;marg
  .tbbtn:active{transform:scale(.94)}
 }
 @media(prefers-reduced-motion:reduce){.topbar,.topbar.show{transition:none}}
+
+/* Copyright hanya tampil di halaman login dan Pengaturan */
+html body .sitefoot{display:none!important}
+html body:not(.has-side) .sitefoot{display:block!important}
+html body:not(.subpage) main:has(.moremenu,.settingsnav)~.sitefoot{display:block!important}
