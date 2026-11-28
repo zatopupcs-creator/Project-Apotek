@@ -204,3 +204,45 @@ html body main:has(.moremenu,.settingsnav)~.sitefoot .sitever{display:block;marg
 html body .sitefoot{display:none!important}
 html body:not(.has-side) .sitefoot{display:block!important}
 html body:not(.subpage) main:has(.moremenu,.settingsnav)~.sitefoot{display:block!important}
+
+/* Skeleton HP: bentuk mengikuti tampilan asli */
+@media(max-width:999px){
+ .sk-circle{width:44px;height:44px;border-radius:50%;flex:none;margin-left:10px}
+ .pagehead>.sk-circle:last-child{margin-left:10px}
+ .sk-date{width:92px;height:16px;flex:none;margin-left:auto}
+ .sk-date+.sk-circle{margin-left:12px}
+ .sk-btnx{width:96px;height:42px;border-radius:10px;flex:none;margin-left:auto}
+ .sk-searchrow{display:flex;gap:10px;margin:0 0 14px}
+ .sk-searchrow .sk-search{flex:1}
+ .sk-filter{width:86px;height:45px;border-radius:9px;flex:none}
+ .sk-chips{overflow:hidden;margin:0 0 18px}
+ .sk-chip{flex:none;height:36px;border-radius:10px}
+ .sk-sec{display:flex;justify-content:space-between;align-items:center;margin:0 0 14px}
+ .sk-sech{width:130px;height:22px}
+ .sk-secn{width:56px;height:14px}
+ .sk-card .sk-photo{height:104px;aspect-ratio:auto;border-radius:0}
+ .sk-card .sk-line{margin:9px 0}
+ .sk-pricerow{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
+ .sk-pricerow .sk-line{margin:0}
+ .sk-add{width:30px;height:30px;border-radius:9px;flex:none}
+ .sk-pcard{background:#fff;border:1px solid #e6e9f0;border-radius:14px;padding:14px 16px 16px;margin:0 0 16px}
+ .sk-ptop{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+ .sk-ptop .sk-grow .sk-line{margin:6px 0}
+ .sk-pthumb{width:44px;height:44px;border-radius:10px;flex:none}
+ .sk-pico{width:18px;height:18px;border-radius:5px;flex:none}
+ .sk-pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+ .sk-pl{width:55%;height:10px;margin:0 0 7px}
+ .sk-pv{width:75%;height:15px}
+ .sk-chipbtn{width:118px;height:34px;border-radius:9px}
+ .sk-panel{background:#fff;border:1px solid #e6e9f0;border-radius:16px;padding:18px;margin:0 0 16px}
+ .sk-panel .sk-line{margin:0 0 12px}
+ .sk-field{height:44px;border-radius:12px}
+ .sk-tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 16px}
+ .sk-tile{background:#fff;border:1px solid #e6e9f0;border-radius:14px;padding:16px 14px}
+ .sk-tile .sk-line{margin:0 0 12px}
+ .sk-tile .sk-line:last-child{margin:0;height:20px}
+ .sk-chart .sk-block{height:150px}
+}
+
+/* Skeleton: label kolom (data-label) ikut jadi blok shimmer */
+main[aria-busy="true"] td::before,main[aria-busy="true"] th::before{color:transparent!important;-webkit-text-fill-color:transparent!important;background:linear-gradient(90deg,#e8ebf0 25%,#f3f5f8 40%,#e8ebf0 60%) 100% 50%/300% 100%;animation:skshimmer 1.4s ease-in-out infinite;border-radius:5px;width:fit-content;max-width:100%}
