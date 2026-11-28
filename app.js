@@ -42,7 +42,7 @@
   const product=id=>data.products.find(p=>p.id===id);
   const asForm=form=>Object.fromEntries(new FormData(form));
   const feedback=(msg,kind='ok')=>{const t=$('#toast');t.className=kind==='error'?'error':'';t.innerHTML=(kind==='error'?'<span class="okwrap err"><svg class="okmark" viewBox="0 0 52 52" aria-hidden="true"><circle class="okc" cx="26" cy="26" r="23"/><path class="xp1" d="M18 18l16 16"/><path class="xp2" d="M34 18L18 34"/></svg></span>':'<span class="okwrap"><svg class="okmark" viewBox="0 0 52 52" aria-hidden="true"><circle class="okc" cx="26" cy="26" r="23"/><path class="okp" d="M15 27l8 8 15-17"/></svg></span>')+'<span>'+h(msg)+'</span>';clearTimeout(timer);timer=setTimeout(()=>{t.className='';t.innerHTML=''},3300)};
-  function skeletonize(html){
+  function skeletonize(html,keepIds=false){
    const t=document.createElement('template');t.innerHTML=html;
    const CTRL='input,select,textarea,button,img,svg,canvas';
    const hasText=el=>[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());
@@ -54,7 +54,7 @@
    const walk=el=>{
     for(const c of [...el.children]){
      if(['STYLE','SCRIPT','TEMPLATE'].includes(c.tagName)||c.matches('.sr,[hidden]')||(c.tagName==='INPUT'&&c.type==='hidden')){c.remove();continue}
-     for(const at of ['id','name','for','data-a','data-id','data-dp','autofocus','required','href','onclick'])c.removeAttribute(at);
+     for(const at of [...(keepIds?[]:['id']),'name','for','data-a','data-id','data-dp','autofocus','required','href','onclick'])c.removeAttribute(at);
      c.setAttribute('tabindex','-1');c.setAttribute('aria-hidden','true');
      if(c.matches(CTRL)||c.matches('.photo,.thumb,.avatar')){mark(c);continue}
      if(hasText(c)){
@@ -90,7 +90,16 @@
   function totals(){let lines=cartLines(),sub=lines.reduce((n,{p,qty})=>n+p.price*qty,0),qty=lines.reduce((n,x)=>n+x.qty,0);return {sub,qty,total:Math.max(0,sub-discount),lines}}
   const loaderText={stok:'Mengambil stok & batch dari server',suplier:'Mengambil data suplier dari server',pegawai:'Mengambil data pegawai dari server',riwayat:'Mengambil riwayat transaksi dari server',laporan:'Mengambil data penjualan dari server',kasir:'Mengambil katalog produk dari server'};
   const loadingBlock=()=>'<div class="tableloading"><svg class="spinner" viewBox="0 0 50 50" aria-hidden="true"><circle class="track" cx="25" cy="25" r="20"/><circle class="arc" cx="25" cy="25" r="20"/></svg><b>Memuat data...</b><span>'+(loaderText[page]||'Mengambil data dari server')+'</span></div>';
+  function mobileSkeleton(){
+   const b=(cls)=>'<i class="sk '+cls+'"></i>',status='<span class="sr" role="status">Memuat data…</span>';
+   const head=(n)=>'<div class="pagehead"><div>'+b('sk-title')+'</div>'+Array.from({length:n},()=>b('sk-circle')).join('')+'</div>';
+   const pcard=()=>'<div class="sk-pcard"><div class="sk-ptop">'+b('sk-pthumb')+'<div class="sk-grow">'+b('sk-line w60')+b('sk-line w40')+'</div>'+b('sk-pico')+b('sk-pico')+'</div><div class="sk-pgrid">'+Array.from({length:6},(_,i)=>'<div>'+b('sk-pl')+(i===5?b('sk-chipbtn'):b('sk-pv'))+'</div>').join('')+'</div></div>';
+   if(page==='kasir')return status+'<div class="pagehead"><div>'+b('sk-title')+'</div>'+b('sk-date')+b('sk-circle')+'</div><div class="pos"><section class="catalog"><div class="sk-searchrow">'+b('sk-search')+b('sk-filter')+'</div><div class="sk-chips">'+[70,52,66,60,80].map(w=>'<i class="sk sk-chip" style="width:'+w+'px"></i>').join('')+'</div><div class="sk-sec">'+b('sk-sech')+b('sk-secn')+'</div><div class="products">'+Array.from({length:4},()=>'<div class="card sk-card"><i class="sk sk-photo"></i><div class="cardbody">'+b('sk-line w40')+b('sk-line w80')+b('sk-line w60')+'<div class="sk-pricerow">'+b('sk-line w40')+b('sk-add')+'</div></div></div>').join('')+'</div></section></div>';
+   if(page==='laporan')return status+'<div class="pagehead"><div>'+b('sk-title')+'</div>'+b('sk-btnx')+b('sk-circle')+'</div><section class="sk-panel">'+b('sk-line w40')+b('sk-field')+'</section><div class="sk-tiles">'+Array.from({length:4},()=>'<div class="sk-tile">'+b('sk-line w60')+b('sk-line w40')+'</div>').join('')+'</div><section class="sk-panel sk-chart">'+b('sk-line w60')+b('sk-block')+'</section>';
+   return status+head(page==='stok'?2:1)+Array.from({length:3},pcard).join('');
+  }
   function skeleton(){
+   if(mobileUI())return mobileSkeleton();
    const bar=(cls)=>'<i class="sk '+cls+'"></i>';
    const head='<div class="pagehead"><div>'+bar('sk-title')+'</div></div>';
    const status='<span class="sr" role="status">Memuat data…</span>';
@@ -134,7 +143,8 @@
    if(page==='pengaturan'){scrollTo(0,0);return}
    [main,$('#sitefoot')].forEach(e=>e&&e.classList.remove('pgr','pgl'));
    const real=main.innerHTML;
-   main.innerHTML=skeleton();main.setAttribute('aria-busy','true');scrollTo(0,0);
+   let sk;try{sk=skeletonize(real,true)}catch{sk=''}
+   main.innerHTML=sk?'<span class="sr" role="status">Memuat data…</span>'+sk:skeleton();main.setAttribute('aria-busy','true');scrollTo(0,0);
    swapTimer=setTimeout(()=>{if(!data)return;main.innerHTML=real;main.removeAttribute('aria-busy');updateBell();showTableLoading()},skeletonMs);
   }
   let expSelecting=false,expSelected=new Set(),swipe=null;
